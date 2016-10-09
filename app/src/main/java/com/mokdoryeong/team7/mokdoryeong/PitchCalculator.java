@@ -4,7 +4,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.util.Log;
 
 /**
  * Created by park on 2016-10-09.
@@ -24,39 +23,43 @@ public class PitchCalculator implements SensorEventListener {
     private PitchAngleListener pitchAngleListener;
 
     interface PitchAngleListener{
-        public void onPitchAngleCalculated(float pitchAngle, float stand);
+        public void onPitchAngleCalculated(float pitchAngle, boolean isStanding);
     }
 
     public PitchCalculator(SensorManager sm){
-
         this.sm = sm;
         accSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magSensor = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-
         if(event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
             accData = event.values.clone();
 
         if(event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
             magData = event.values.clone();
-
         calculatePitch();
-
     }
 
     private void calculatePitch(){
+        float angle;
+        boolean isStanding;
 
         if(accData != null && magData != null){
             SensorManager.getRotationMatrix(rotation, null, accData, magData);
             SensorManager.getOrientation(rotation, result);
 
-            pitchAngleListener.onPitchAngleCalculated(result[1], result[2]);
-        }
+            if(result[2] < 0 && Math.abs(result[1]) < 0.75f){
+                isStanding = false;
+                angle = (1.0f - Math.abs(result[1]) / 1.5f) * 90.0f;
+            }else{
+                isStanding = true;
+                angle = Math.abs(result[1]) / 1.5f * 90.0f;
+            }
 
+            pitchAngleListener.onPitchAngleCalculated(angle, isStanding);
+        }
     }
 
     public void turnOn(){
@@ -67,8 +70,6 @@ public class PitchCalculator implements SensorEventListener {
     public void turnOff(){
         sm.unregisterListener(this);
     }
-
-
 
     public void registerPitchAngleListener(PitchAngleListener pitchAngleListener){
         this.pitchAngleListener = pitchAngleListener;

@@ -31,8 +31,8 @@ public class MainActivity extends AppCompatActivity  {
         pc = new PitchCalculator((SensorManager)getSystemService(SENSOR_SERVICE));
         pc.registerPitchAngleListener(new PitchCalculator.PitchAngleListener() {
             @Override
-            public void onPitchAngleCalculated(float pitchAngle, float stand) {
-                Log.d(SensorTag, String.valueOf(pitchAngle + " " + stand));
+            public void onPitchAngleCalculated(float pitchAngle, boolean isStanding) {
+                Log.d(SensorTag, String.valueOf(pitchAngle + " " + isStanding));
             }
         });
     }
