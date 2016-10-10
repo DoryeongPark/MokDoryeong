@@ -29,9 +29,9 @@ public class PitchCalculator implements SensorEventListener {
         public void onPitchAngleCalculated(float pitchAngle, boolean isStanding);
     }
 
-    public PitchCalculator(WindowManager wm, SensorManager sm){
-        this.wm = wm;
+    public PitchCalculator(SensorManager sm, WindowManager wm){
         this.sm = sm;
+        this.wm = wm;
         accSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magSensor = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
     }
@@ -54,7 +54,8 @@ public class PitchCalculator implements SensorEventListener {
             SensorManager.getRotationMatrix(rotation, null, accData, magData);
             SensorManager.getOrientation(rotation, result);
 
-            if(Math.abs(result[0]) > 1.5f) {//Portrait mode
+            if(wm.getDefaultDisplay().getRotation() == Surface.ROTATION_0 ||
+                    wm.getDefaultDisplay().getRotation() == Surface.ROTATION_180) {//Portrait mode
                 if (Math.abs(result[2]) > 1.3f && Math.abs(result[1]) < 0.75f) {//Laying
                     isStanding = false;
                     angle = (1.0f - Math.abs(result[1]) / 1.5f) * 90.0f;

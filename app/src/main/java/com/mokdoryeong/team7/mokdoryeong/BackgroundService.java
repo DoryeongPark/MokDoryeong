@@ -20,12 +20,6 @@ public class BackgroundService extends Service {
 
     private WindowManager wm;
 
-    private int widgetWidth = 100;
-    private int widgetHeight = 100;
-
-    private int widgetPosX = 0;
-    private int widgetPosY = 0;
-
     private PitchCalculator pc;
     private WidgetView widget;
 
@@ -54,12 +48,10 @@ public class BackgroundService extends Service {
 
         //For widget
         wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-
-        widget = new WidgetView(this);
-        initiateWidget();
+        widget = new WidgetView(this, wm);
 
         //For pitch angle
-        pc = new PitchCalculator(wm, (SensorManager)getSystemService(SENSOR_SERVICE));
+        pc = new PitchCalculator((SensorManager)getSystemService(SENSOR_SERVICE), wm);
         pc.registerPitchAngleListener(new PitchCalculator.PitchAngleListener() {
             @Override
             public void onPitchAngleCalculated(float pitchAngle, boolean isStanding) {
@@ -68,7 +60,6 @@ public class BackgroundService extends Service {
                 widget.update(pitchAngle);
             }
         });
-
         pc.turnOn();
     }
 
@@ -90,49 +81,5 @@ public class BackgroundService extends Service {
         }
 
         pc.turnOff();
-    }
-
-    private void initiateWidget(){
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-        params.width = widgetWidth;
-        params.height = widgetHeight;
-        params.x = widgetPosX;
-        params.y = widgetPosY;
-        wm.addView(widget, params);
-    }
-
-    private void setWidgetSize(int w, int h){
-        widgetWidth = w;
-        widgetHeight = h;
-
-        wm.removeViewImmediate(widget);
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-        params.width = widgetWidth;
-        params.height = widgetHeight;
-        params.x = widgetPosX;
-        params.y = widgetPosY;
-        wm.addView(widget, params);
-    }
-
-    private void setWidgetPos(int x, int y){
-        widgetPosX = x;
-        widgetPosY = y;
-
-        wm.removeViewImmediate(widget);
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-        params.width = widgetWidth;
-        params.height = widgetHeight;
-        params.x = widgetPosX;
-        params.y = widgetPosY;
-        wm.addView(widget, params);
     }
 }
