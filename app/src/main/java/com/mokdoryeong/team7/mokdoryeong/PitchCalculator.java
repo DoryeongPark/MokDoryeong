@@ -58,7 +58,7 @@ public class PitchCalculator implements SensorEventListener {
                 angle = Math.abs(result[1]) / 1.5f * 90.0f;
             }
 
-            pitchAngleListener.onPitchAngleCalculated(result[2], isStanding);
+            pitchAngleListener.onPitchAngleCalculated(angle, isStanding);
         }
     }
 
@@ -77,7 +77,7 @@ public class PitchCalculator implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        /* Not using accuracy sensor */
+
     }
 
 }

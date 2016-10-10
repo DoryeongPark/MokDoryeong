@@ -5,10 +5,12 @@ import android.app.Service;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -16,6 +18,15 @@ import android.widget.Toast;
 
 public class BackgroundService extends Service {
 
+    private WindowManager wm;
+
+    private int widgetWidth = 100;
+    private int widgetHeight = 100;
+
+    private int widgetPosX = 0;
+    private int widgetPosY = 0;
+
+    private PitchCalculator pc;
     private WidgetView widget;
 
     private WidgetThread widgetThread;
@@ -40,18 +51,27 @@ public class BackgroundService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        widget = new WidgetView(this);
-        //Setting for top window
-        WindowManager.LayoutParams params
-                = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-        params.width = 100;
-        params.height = 100;
 
-        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-        wm.addView(widget, params);
+        //For widget
+        wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+        widget = new WidgetView(this);
+        initiateWidget();
+        setWidgetSize(200, 200);
+        setWidgetPos(200, 300);
+
+        //For pitch angle
+        pc = new PitchCalculator((SensorManager)getSystemService(SENSOR_SERVICE));
+        pc.registerPitchAngleListener(new PitchCalculator.PitchAngleListener() {
+            @Override
+            public void onPitchAngleCalculated(float pitchAngle, boolean isStanding) {
+                //Handling sensor data
+                Log.d("Sensor", String.valueOf(pitchAngle + " " + isStanding));
+                widget.update(pitchAngle);
+            }
+        });
+
+        pc.turnOn();
     }
 
     @Override
@@ -70,7 +90,51 @@ public class BackgroundService extends Service {
             ((WindowManager) getSystemService(WINDOW_SERVICE)).removeView(widget);
             widget = null;
         }
+
+        pc.turnOff();
     }
 
+    private void initiateWidget(){
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT);
+        params.width = widgetWidth;
+        params.height = widgetHeight;
+        params.x = widgetPosX;
+        params.y = widgetPosY;
+        wm.addView(widget, params);
+    }
 
+    private void setWidgetSize(int w, int h){
+        widgetWidth = w;
+        widgetHeight = h;
+
+        wm.removeViewImmediate(widget);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT);
+        params.width = widgetWidth;
+        params.height = widgetHeight;
+        params.x = widgetPosX;
+        params.y = widgetPosY;
+        wm.addView(widget, params);
+    }
+
+    private void setWidgetPos(int x, int y){
+        widgetPosX = x;
+        widgetPosY = y;
+
+        wm.removeViewImmediate(widget);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                PixelFormat.TRANSLUCENT);
+        params.width = widgetWidth;
+        params.height = widgetHeight;
+        params.x = widgetPosX;
+        params.y = widgetPosY;
+        wm.addView(widget, params);
+    }
 }

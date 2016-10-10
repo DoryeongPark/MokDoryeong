@@ -15,11 +15,6 @@ import org.opencv.android.OpenCVLoader;
 
 public class MainActivity extends AppCompatActivity  {
 
-    private static final String OpenCVTag = "OpenCV";
-    private static final String SensorTag = "Sensor";
-
-    private PitchCalculator pc;
-
     private Button btnWidgetOn;
     private Button btnWidgetOff;
 
@@ -34,23 +29,15 @@ public class MainActivity extends AppCompatActivity  {
 
     static{
         if(OpenCVLoader.initDebug())
-            Log.d(OpenCVTag, "OpenCV successfully loaded");
+            Log.d("OpenCV", "OpenCV successfully loaded");
         else
-            Log.d(OpenCVTag, "OpenCV not loaded");
+            Log.d("OpenCV", "OpenCV not loaded");
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        pc = new PitchCalculator((SensorManager)getSystemService(SENSOR_SERVICE));
-        pc.registerPitchAngleListener(new PitchCalculator.PitchAngleListener() {
-            @Override
-            public void onPitchAngleCalculated(float pitchAngle, boolean isStanding) {
-                //Handling sensor data
-                Log.d(SensorTag, String.valueOf(pitchAngle + " " + isStanding));
-            }
-        });
 
         btnWidgetOn = (Button)findViewById(R.id.btn_widgeton);
         btnWidgetOff = (Button)findViewById(R.id.btn_widgetoff);
@@ -73,13 +60,11 @@ public class MainActivity extends AppCompatActivity  {
     @Override
     protected void onResume(){
         super.onResume();
-        pc.turnOn();
     }
 
     @Override
     protected void onPause(){
         super.onPause();
-        pc.turnOff();
     }
 
 }
