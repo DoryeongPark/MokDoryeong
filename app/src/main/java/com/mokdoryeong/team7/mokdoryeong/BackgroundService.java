@@ -57,11 +57,9 @@ public class BackgroundService extends Service {
 
         widget = new WidgetView(this);
         initiateWidget();
-        setWidgetSize(200, 200);
-        setWidgetPos(200, 300);
 
         //For pitch angle
-        pc = new PitchCalculator((SensorManager)getSystemService(SENSOR_SERVICE));
+        pc = new PitchCalculator(wm, (SensorManager)getSystemService(SENSOR_SERVICE));
         pc.registerPitchAngleListener(new PitchCalculator.PitchAngleListener() {
             @Override
             public void onPitchAngleCalculated(float pitchAngle, boolean isStanding) {

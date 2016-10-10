@@ -4,12 +4,15 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.view.Surface;
+import android.view.WindowManager;
 
 /**
  * Created by park on 2016-10-09.
  */
 public class PitchCalculator implements SensorEventListener {
 
+    private WindowManager wm;
     private SensorManager sm;
 
     private Sensor accSensor;
@@ -26,7 +29,8 @@ public class PitchCalculator implements SensorEventListener {
         public void onPitchAngleCalculated(float pitchAngle, boolean isStanding);
     }
 
-    public PitchCalculator(SensorManager sm){
+    public PitchCalculator(WindowManager wm, SensorManager sm){
+        this.wm = wm;
         this.sm = sm;
         accSensor = sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magSensor = sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -46,19 +50,29 @@ public class PitchCalculator implements SensorEventListener {
         float angle;
         boolean isStanding;
 
-        if(accData != null && magData != null){
+        if (accData != null && magData != null) {
             SensorManager.getRotationMatrix(rotation, null, accData, magData);
             SensorManager.getOrientation(rotation, result);
 
-            if(Math.abs(result[2]) > 1.3f && Math.abs(result[1]) < 0.75f){
-                isStanding = false;
-                angle = (1.0f - Math.abs(result[1]) / 1.5f) * 90.0f;
-            }else{
-                isStanding = true;
-                angle = Math.abs(result[1]) / 1.5f * 90.0f;
+            if(Math.abs(result[0]) > 1.5f) {//Portrait mode
+                if (Math.abs(result[2]) > 1.3f && Math.abs(result[1]) < 0.75f) {//Laying
+                    isStanding = false;
+                    angle = (1.0f - Math.abs(result[1]) / 1.5f) * 90.0f;
+                } else {
+                    isStanding = true;//Standing
+                    angle = Math.abs(result[1]) / 1.5f * 90.0f;
+                }
+                pitchAngleListener.onPitchAngleCalculated(angle, isStanding);
+            }else{//Landscape mode
+                if(Math.abs(result[2]) > 1.5f) {//Laying
+                    isStanding = false;
+                    angle = (Math.abs(result[2]) / 3.1f * 180.0f) - 90.0f;
+                }else {//Standing
+                    isStanding = true;
+                    angle = Math.abs(result[2]) / 3.1f * 180.0f;
+                }
+                pitchAngleListener.onPitchAngleCalculated(angle, isStanding);
             }
-
-            pitchAngleListener.onPitchAngleCalculated(angle, isStanding);
         }
     }
 
