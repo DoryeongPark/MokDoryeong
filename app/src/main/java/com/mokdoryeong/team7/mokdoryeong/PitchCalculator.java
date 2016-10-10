@@ -50,7 +50,7 @@ public class PitchCalculator implements SensorEventListener {
             SensorManager.getRotationMatrix(rotation, null, accData, magData);
             SensorManager.getOrientation(rotation, result);
 
-            if(result[2] < 0 && Math.abs(result[1]) < 0.75f){
+            if(Math.abs(result[2]) > 1.3f && Math.abs(result[1]) < 0.75f){
                 isStanding = false;
                 angle = (1.0f - Math.abs(result[1]) / 1.5f) * 90.0f;
             }else{
@@ -58,7 +58,7 @@ public class PitchCalculator implements SensorEventListener {
                 angle = Math.abs(result[1]) / 1.5f * 90.0f;
             }
 
-            pitchAngleListener.onPitchAngleCalculated(angle, isStanding);
+            pitchAngleListener.onPitchAngleCalculated(result[2], isStanding);
         }
     }
 

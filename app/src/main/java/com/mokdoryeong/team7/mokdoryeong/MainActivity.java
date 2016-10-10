@@ -1,12 +1,15 @@
 package com.mokdoryeong.team7.mokdoryeong;
 
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
+import android.content.Intent;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -16,6 +19,18 @@ public class MainActivity extends AppCompatActivity  {
     private static final String SensorTag = "Sensor";
 
     private PitchCalculator pc;
+
+    private Button btnWidgetOn;
+    private Button btnWidgetOff;
+
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch(msg.what){
+
+            }
+        }
+    };
 
     static{
         if(OpenCVLoader.initDebug())
@@ -32,7 +47,25 @@ public class MainActivity extends AppCompatActivity  {
         pc.registerPitchAngleListener(new PitchCalculator.PitchAngleListener() {
             @Override
             public void onPitchAngleCalculated(float pitchAngle, boolean isStanding) {
+                //Handling sensor data
                 Log.d(SensorTag, String.valueOf(pitchAngle + " " + isStanding));
+            }
+        });
+
+        btnWidgetOn = (Button)findViewById(R.id.btn_widgeton);
+        btnWidgetOff = (Button)findViewById(R.id.btn_widgetoff);
+        btnWidgetOn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(),"WidgetService 시작", Toast.LENGTH_SHORT).show();
+                startService(new Intent(MainActivity.this, BackgroundService.class));
+            }
+        });
+        btnWidgetOff.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(),"WidgetService 종료", Toast.LENGTH_SHORT).show();
+                stopService(new Intent(MainActivity.this, BackgroundService.class));
             }
         });
     }
