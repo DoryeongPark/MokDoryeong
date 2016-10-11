@@ -1,7 +1,6 @@
 package com.mokdoryeong.team7.mokdoryeong;
 
 import android.content.Intent;
-import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -9,11 +8,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
 
 public class MainActivity extends AppCompatActivity  {
+
+    private LinearLayout layoutGraph;
+    private GraphView gv;
 
     private Button btnWidgetOn;
     private Button btnWidgetOff;
@@ -39,6 +42,8 @@ public class MainActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        layoutGraph = (LinearLayout)findViewById(R.id.layout_graph);
+
         btnWidgetOn = (Button)findViewById(R.id.btn_widgeton);
         btnWidgetOff = (Button)findViewById(R.id.btn_widgetoff);
         btnWidgetOn.setOnClickListener(new View.OnClickListener(){
@@ -55,6 +60,9 @@ public class MainActivity extends AppCompatActivity  {
                 stopService(new Intent(MainActivity.this, BackgroundService.class));
             }
         });
+
+        gv = new GraphView(this, handler);
+        layoutGraph.addView(gv);
     }
 
     @Override

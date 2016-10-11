@@ -1,9 +1,13 @@
 package com.mokdoryeong.team7.mokdoryeong;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -17,6 +21,8 @@ import android.widget.ImageView;
 public class WidgetView extends ImageView {
 
     private float angle = 0.0f;
+
+    private boolean isMoving = false;
 
     private WindowManager wm;
     private WindowManager.LayoutParams wParams;
@@ -39,8 +45,27 @@ public class WidgetView extends ImageView {
         initiateSettings();
     }
 
-    protected void onDraw(Canvas c){
+    protected void onDraw(Canvas canvas){
+        Paint paint = new Paint();
+        Bitmap bitmap;
 
+        if(angle < 15.0f)
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.angle0);
+        else if(angle < 30.0f)
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.angle15);
+        else if(angle < 45.0f)
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.angle30);
+        else if(angle < 60.0f)
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.angle45);
+        else if(angle < 75.0f)
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.angle60);
+        else if(angle < 90.0f)
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.angle75);
+        else
+            bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.angle90);
+
+        Rect imgDest = new Rect(0, 0, 180, 220);
+        canvas.drawBitmap(bitmap, null, imgDest, null);
     }
 
     private void initiateSettings(){
@@ -48,8 +73,8 @@ public class WidgetView extends ImageView {
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
-        wParams.width = 100;
-        wParams.height = 100;
+        wParams.width = 180;
+        wParams.height = 220;
         wParams.x = 0;
         wParams.y = 0;
         wm.addView(this, wParams);
@@ -63,6 +88,7 @@ public class WidgetView extends ImageView {
             public boolean onTouch(View v, MotionEvent e) {
                 switch(e.getAction()) {
                     case MotionEvent.ACTION_DOWN:
+                        isMoving = true;
                         startX = e.getRawX();
                         startY = e.getRawY();
                         viewX = wParams.x;
@@ -75,31 +101,21 @@ public class WidgetView extends ImageView {
                         wParams.y = viewY + y;
                         wm.updateViewLayout(WidgetView.this, wParams);
                         break;
+                    case MotionEvent.ACTION_UP:
+                        isMoving = false;
+                        break;
                 }
                 return true;
             }
         });
+
+
     }
 
     public void update(float angle){
-        if(angle > 80.0f){
-            setBackgroundColor(Color.rgb(20, 255, 23));
-        }else if(angle > 70.0f){
-            setBackgroundColor(Color.rgb(100, 255, 23));
-        }else if(angle > 60.0f){
-            setBackgroundColor(Color.rgb(180, 255, 23));
-        }else if(angle > 50.0f){
-            setBackgroundColor(Color.rgb(255, 255, 23));
-        }else if(angle > 40.0f){
-            setBackgroundColor(Color.rgb(255, 190, 23));
-        }else if(angle > 30.0f){
-            setBackgroundColor(Color.rgb(255, 125, 23));
-        }else if(angle > 20.0f){
-            setBackgroundColor(Color.rgb(255, 60, 23));
-        }else if(angle > 10.0f){
-            setBackgroundColor(Color.rgb(255, 0, 23));
-        }else{
-            setBackgroundColor(Color.rgb(20, 255, 23));
+        if(isMoving == false) {
+            this.angle = angle;
+            invalidate();
         }
     }
 

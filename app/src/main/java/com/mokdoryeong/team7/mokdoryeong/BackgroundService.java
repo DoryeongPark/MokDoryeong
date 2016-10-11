@@ -2,18 +2,18 @@ package com.mokdoryeong.team7.mokdoryeong;
 
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.PixelFormat;
+import android.content.IntentFilter;
 import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.WindowManager;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class BackgroundService extends Service {
@@ -34,6 +34,17 @@ public class BackgroundService extends Service {
         }
     };
 
+    private BroadcastReceiver windowStateReceiver = new BroadcastReceiver(){
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(Intent.ACTION_SCREEN_ON)){
+                pc.turnOn();
+            }else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)){
+                pc.turnOff();
+            }
+        }
+    };
+
     public BackgroundService() {}
 
     @Nullable
@@ -45,9 +56,8 @@ public class BackgroundService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
         //For widget
-        wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        wm = (WindowManager)getSystemService(WINDOW_SERVICE);
         widget = new WidgetView(this, wm);
 
         //For pitch angle
@@ -60,6 +70,10 @@ public class BackgroundService extends Service {
                 widget.update(pitchAngle);
             }
         });
+
+        registerReceiver(windowStateReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
+        registerReceiver(windowStateReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
+
         pc.turnOn();
     }
 
@@ -67,6 +81,7 @@ public class BackgroundService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         widgetThread = new WidgetThread(handler);
         widgetThread.start();
+
         return START_STICKY;
     }
 

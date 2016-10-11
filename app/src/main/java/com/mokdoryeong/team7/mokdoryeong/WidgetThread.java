@@ -21,9 +21,9 @@ public class WidgetThread extends Thread{
     }
 
     public void run(){
-        while(isAlive){
-            handler.sendEmptyMessage(0);
-            try{ Thread.sleep(5000); }catch(Exception e){}
-        }
+//        while(isAlive){
+//            handler.sendEmptyMessage(0);
+//            try{ Thread.sleep(1000); }catch(Exception e){}
+//        }
     }
 }
