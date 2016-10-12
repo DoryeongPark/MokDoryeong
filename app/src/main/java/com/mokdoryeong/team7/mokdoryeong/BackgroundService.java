@@ -23,6 +23,8 @@ public class BackgroundService extends Service {
     private PitchCalculator pc;
     private WidgetView widget;
 
+    private CervicalDataCreator cdc;
+
     private WidgetThread widgetThread;
     private Handler handler = new Handler(){
         @Override
@@ -68,11 +70,15 @@ public class BackgroundService extends Service {
                 //Handling sensor data
                 Log.d("Sensor", String.valueOf(pitchAngle + " " + isStanding));
                 widget.update(pitchAngle);
+                cdc.update(pitchAngle);
             }
         });
 
         registerReceiver(windowStateReceiver, new IntentFilter(Intent.ACTION_SCREEN_ON));
         registerReceiver(windowStateReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
+
+        //To send sensor data for CervicalDataCreator
+        cdc = new CervicalDataCreator();
 
         pc.turnOn();
     }
@@ -95,6 +101,7 @@ public class BackgroundService extends Service {
             widget = null;
         }
 
+        unregisterReceiver(windowStateReceiver);
         pc.turnOff();
     }
 }

@@ -16,8 +16,8 @@ public final class Databases {
         public static final String _CREATE =
                 "create table " + _TABLENAME + " ( "
                         + INDEX + "integer primary key autoincrement ,"
-                        + STARTTIME + " integer primary key , "
-                        + FINISHTIME + " integer not null , "
+                        + STARTTIME + " integer primary key ,"
+                        + FINISHTIME + " integer not null ,"
                         + AVERAGEANGLE + " real not null , "
                         + CERVICALRISKINDEX + " real not null );";
 

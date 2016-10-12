@@ -78,8 +78,8 @@ public class PitchCalculator implements SensorEventListener {
     }
 
     public void turnOn(){
-        sm.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_UI);
-        sm.registerListener(this, magSensor, SensorManager.SENSOR_DELAY_UI);
+        sm.registerListener(this, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sm.registerListener(this, magSensor, SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     public void turnOff(){

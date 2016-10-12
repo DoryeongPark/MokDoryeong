@@ -108,8 +108,6 @@ public class WidgetView extends ImageView {
                 return true;
             }
         });
-
-
     }
 
     public void update(float angle){

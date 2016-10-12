@@ -12,6 +12,13 @@ public class CervicalData {
     private float averageAngle;
     private float cervicalRiskIndex;
 
+    public CervicalData(DateTime startTime, DateTime finishTime, float averageAngle, float cervicalRiskIndex){
+        this.startTime = startTime;
+        this.finishTime = finishTime;
+        this.averageAngle = averageAngle;
+        this.cervicalRiskIndex = cervicalRiskIndex;
+    }
+
     public DateTime getStartTime() {
         return startTime;
     }
