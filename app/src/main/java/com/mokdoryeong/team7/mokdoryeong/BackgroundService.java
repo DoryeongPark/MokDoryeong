@@ -78,7 +78,7 @@ public class BackgroundService extends Service {
         registerReceiver(windowStateReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
 
         //To send sensor data for CervicalDataCreator
-        cdc = new CervicalDataCreator();
+        cdc = new CervicalDataCreator(getApplicationContext());
 
         pc.turnOn();
     }

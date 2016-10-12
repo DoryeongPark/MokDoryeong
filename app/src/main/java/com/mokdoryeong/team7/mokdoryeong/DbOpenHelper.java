@@ -39,17 +39,16 @@ public class DbOpenHelper {
     }
 
     public int getIndex(String startTime) {
-        Cursor c = mDB.rawQuery("SELECT " + Databases.CreateDB.INDEX + " FROM " + Databases.CreateDB._TABLENAME
+        Cursor c = mDB.rawQuery("SELECT " + Databases.CreateDB.ID + " FROM " + Databases.CreateDB._TABLENAME
                 + " WHERE " + Databases.CreateDB.STARTTIME + "='" + startTime + "';", null);
         if (c.moveToNext()) {
-            return c.getInt(c.getColumnIndex(Databases.CreateDB.INDEX));
+            return c.getInt(c.getColumnIndex(Databases.CreateDB.ID));
         }
         return -1;
     }
 
     public boolean insertRecord(String startTime, String finishTime, String averageAngle, String cervicalRiskIndex) {
-        if (getIndex(startTime) == -1)
-            return false;
+
         ContentValues values = new ContentValues();
         values.put(Databases.CreateDB.STARTTIME, startTime);
         values.put(Databases.CreateDB.FINISHTIME, finishTime);
@@ -60,17 +59,17 @@ public class DbOpenHelper {
         return mDB.insert(Databases.CreateDB._TABLENAME, null, values) > 0;
     }
 
-    public boolean deleteRecord(String index) {
-        Log.d("Database", "Delete " + index);
-        return mDB.delete(Databases.CreateDB._TABLENAME, "index=" + index, null) > 0;
+    public boolean deleteRecord(String id) {
+        Log.d("Database", "Delete " + id);
+        return mDB.delete(Databases.CreateDB._TABLENAME, "id=" + id, null) > 0;
     }
 
-    public boolean updateRecord(String index, String startTime, String finishTime, String averageAngle, String cervicalRiskIndex) {
+    public boolean updateRecord(String id, String startTime, String finishTime, String averageAngle, String cervicalRiskIndex) {
         Log.d("DataBase", "Update record" + startTime + ", " + finishTime + ", " + averageAngle + ", " + cervicalRiskIndex);
         ContentValues values = new ContentValues();
         values.put(Databases.CreateDB.AVERAGEANGLE, averageAngle);
         values.put(Databases.CreateDB.CERVICALRISKINDEX, cervicalRiskIndex);
-        return mDB.update(Databases.CreateDB._TABLENAME, values, "index=" + index, null) > 0;
+        return mDB.update(Databases.CreateDB._TABLENAME, values, "id=" + id, null) > 0;
 
     }
 

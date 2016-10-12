@@ -6,6 +6,7 @@ import org.joda.time.DateTime;
  * Created by park on 2016-10-12.
  */
 public class DataHeartBeat extends Thread {
+
     private CervicalDataCreator cdc;
     private int timer = 2;
     private DateTime startTime;

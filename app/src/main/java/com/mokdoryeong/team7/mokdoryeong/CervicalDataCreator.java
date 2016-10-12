@@ -1,5 +1,6 @@
 package com.mokdoryeong.team7.mokdoryeong;
 
+import android.content.Context;
 import android.util.Log;
 
 import org.joda.time.DateTime;
@@ -21,14 +22,15 @@ public class CervicalDataCreator {
 
     private CervicalDataManager dataManager;
 
-    public CervicalDataCreator(){
-        dataManager = new CervicalDataManager();
+    public CervicalDataCreator(Context context){
+        dataManager = new CervicalDataManager(context);
     }
 
     public void update(float pitchAngle){
+
         if(dataFilter == DATA_FILTER_COUNT){
             //Start or continue HeartBeat
-            if(dataHeartBeat == null) {
+            if(dataHeartBeat == null || !dataHeartBeat.isAlive()) {
                 dataHeartBeat = new DataHeartBeat(this);
                 dataHeartBeat.start();
                 Log.d("DataHeartBeat", "DataHeartBeat started");
