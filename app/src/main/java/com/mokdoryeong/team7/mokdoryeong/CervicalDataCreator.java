@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 /**
  * Created by park on 2016-10-12.
@@ -55,7 +56,7 @@ public class CervicalDataCreator {
 
     public void onHeartBeatFinished(DateTime startTime, DateTime finishTime){
         Log.d("DataHeartBeat", "DataHeartBeat finished");
-        if(finishTime.minus(startTime.getMillis()).getSecondOfMinute() < 20) {
+        if(startTime.minus(finishTime.getMillis()).getSecondOfDay() < 20) {
             resetMembers();
             return;
         }

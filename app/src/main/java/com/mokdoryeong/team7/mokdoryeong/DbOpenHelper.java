@@ -38,7 +38,7 @@ public class DbOpenHelper {
         return mDB.query(Databases.CreateDB._TABLENAME, null, null, null, null, null, null);
     }
 
-    public int getIndex(String startTime) {
+    private int getIndex(String startTime) {
         Cursor c = mDB.rawQuery("SELECT " + Databases.CreateDB.ID + " FROM " + Databases.CreateDB._TABLENAME
                 + " WHERE " + Databases.CreateDB.STARTTIME + "='" + startTime + "';", null);
         if (c.moveToNext()) {
@@ -48,7 +48,6 @@ public class DbOpenHelper {
     }
 
     public boolean insertRecord(String startTime, String finishTime, String averageAngle, String cervicalRiskIndex) {
-
         ContentValues values = new ContentValues();
         values.put(Databases.CreateDB.STARTTIME, startTime);
         values.put(Databases.CreateDB.FINISHTIME, finishTime);
@@ -59,30 +58,29 @@ public class DbOpenHelper {
         return mDB.insert(Databases.CreateDB._TABLENAME, null, values) > 0;
     }
 
-    public boolean deleteRecord(String id) {
+    public boolean deleteRecord(String startTime) {
+        int id = getIndex(startTime);
         Log.d("Database", "Delete " + id);
         return mDB.delete(Databases.CreateDB._TABLENAME, "id=" + id, null) > 0;
     }
 
-    public boolean updateRecord(String id, String startTime, String finishTime, String averageAngle, String cervicalRiskIndex) {
+    public boolean updateRecord(String startTime, String finishTime, String averageAngle, String cervicalRiskIndex) {
+        int id = getIndex(startTime);
         Log.d("DataBase", "Update record" + startTime + ", " + finishTime + ", " + averageAngle + ", " + cervicalRiskIndex);
         ContentValues values = new ContentValues();
         values.put(Databases.CreateDB.AVERAGEANGLE, averageAngle);
         values.put(Databases.CreateDB.CERVICALRISKINDEX, cervicalRiskIndex);
         return mDB.update(Databases.CreateDB._TABLENAME, values, "id=" + id, null) > 0;
-
     }
 
     private class DatabaseHelper extends SQLiteOpenHelper {
         public DatabaseHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
         }
-
         @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(Databases.CreateDB._CREATE);
         }
-
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL("DROP TABLE IF EXISTS " + Databases.CreateDB._TABLENAME);
