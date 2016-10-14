@@ -5,11 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.os.Parcelable;
 import android.util.Log;
 
 import org.joda.time.DateTime;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 
 /**
@@ -44,7 +46,15 @@ public class CervicalDataManager {
         //This is for initial data of graph view
         Intent intent = new Intent("com.mokdoryeong.team7.SEND_GRAPH_DATA_RESPONSE");
         intent.putExtra("DataResponse","Data response is successfully sent");
-        intent.putExtra("Data", dataQueue.getFirst());
+
+        ArrayList<CervicalData> dataSet = new ArrayList<CervicalData>();
+        for(CervicalData cd : dataQueue){
+            dataSet.add(new CervicalData(new DateTime(cd.getStartTime().getMillis()),
+                                         new DateTime(cd.getFinishTime().getMillis()),
+                                         cd.getAverageAngle(),
+                                         cd.getCervicalRiskIndex()));
+        }
+        intent.putExtra("Data", dataSet);
         context.sendBroadcast(intent);
     }
 

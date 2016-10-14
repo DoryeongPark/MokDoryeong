@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +17,8 @@ import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Deque;
 
 public class MainActivity extends AppCompatActivity {
@@ -106,8 +109,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String strReceived = intent.getStringExtra("DataResponse");
-                CervicalData data = intent.getParcelableExtra("Data");
-                Log.d("Database", data.getStartTime().toString());
+                ArrayList<CervicalData> dataArr = (ArrayList<CervicalData>)intent.getSerializableExtra("Data");
+                Log.d("Database", dataArr.get(0).getStartTime().toString());
+                Log.d("Database", dataArr.get(1).getStartTime().toString());
                 Log.d("Database", strReceived);
             }
         };
