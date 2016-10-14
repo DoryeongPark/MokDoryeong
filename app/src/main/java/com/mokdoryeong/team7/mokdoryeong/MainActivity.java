@@ -1,6 +1,9 @@
 package com.mokdoryeong.team7.mokdoryeong;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -13,13 +16,19 @@ import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
 
-public class MainActivity extends AppCompatActivity  {
+import java.util.Deque;
+
+public class MainActivity extends AppCompatActivity {
+
+    private boolean isExecutedFirst = true;
 
     private LinearLayout layoutGraph;
     private GraphView gv;
 
     private Button btnWidgetOn;
     private Button btnWidgetOff;
+
+    private BroadcastReceiver dataResponseReceiver;
 
     private Handler handler = new Handler(){
         @Override
@@ -60,19 +69,51 @@ public class MainActivity extends AppCompatActivity  {
                 stopService(new Intent(MainActivity.this, BackgroundService.class));
             }
         });
+    }
 
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(isExecutedFirst){//This is for initial data of Graph view
+            startService(new Intent(MainActivity.this, BackgroundService.class));
+            stopService(new Intent(MainActivity.this, BackgroundService.class));
+            isExecutedFirst = false;
+        }
+        loadCervicalDataFromService();
         gv = new GraphView(this, handler);
         layoutGraph.addView(gv);
     }
 
     @Override
-    protected void onResume(){
-        super.onResume();
+    protected void onPause(){
+        super.onPause();
+        unregisterReceiver(dataResponseReceiver);
     }
 
     @Override
-    protected void onPause(){
-        super.onPause();
+    protected void onDestroy(){
+        unregisterReceiver(dataResponseReceiver);
+        super.onDestroy();
+    }
+
+    private void loadCervicalDataFromService(){
+        Intent intent = new Intent("com.mokdoryeong.team7.SEND_GRAPH_DATA_REQUEST");
+        intent.putExtra("DataRequest", "Data request is successfully sent");
+        sendBroadcast(intent);
+
+        dataResponseReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String strReceived = intent.getStringExtra("DataResponse");
+                CervicalData data = intent.getParcelableExtra("Data");
+                Log.d("Database", data.getStartTime().toString());
+                Log.d("Database", strReceived);
+            }
+        };
+
+        registerReceiver(dataResponseReceiver,
+                new IntentFilter("com.mokdoryeong.team7.SEND_GRAPH_DATA_RESPONSE"));
     }
 
 }

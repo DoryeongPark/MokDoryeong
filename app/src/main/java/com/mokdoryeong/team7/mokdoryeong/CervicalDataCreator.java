@@ -21,10 +21,10 @@ public class CervicalDataCreator {
 
     private DataHeartBeat dataHeartBeat = null;
 
-    private CervicalDataManager dataManager;
+    private CervicalDataManager cervicalDataManager;
 
     public CervicalDataCreator(Context context){
-        dataManager = new CervicalDataManager(context);
+        cervicalDataManager = new CervicalDataManager(context);
     }
 
     public void update(float pitchAngle){
@@ -56,12 +56,11 @@ public class CervicalDataCreator {
 
     public void onHeartBeatFinished(DateTime startTime, DateTime finishTime){
         Log.d("DataHeartBeat", "DataHeartBeat finished");
-        if(startTime.minus(finishTime.getMillis()).getSecondOfDay() < 20) {
+        if(finishTime.minus(startTime.getMillis()).getMillis() < 20000) {
             resetMembers();
             return;
         }
-
-        dataManager.insert(new CervicalData(startTime,
+        cervicalDataManager.insert(new CervicalData(startTime,
                                             finishTime,
                                             averageAngle,
                                             cervicalRiskIndex));
