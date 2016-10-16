@@ -37,25 +37,13 @@ public class CervicalDataManager {
             public void onReceive(Context context, Intent intent) {
                 String strReceived = intent.getStringExtra("DataRequest");
                 Log.d("Database", strReceived);
-                context.sendBroadcast(new Intent("com.mokdoryeong.team7.SEND_GRAPH_DATA_RESPONSE")
-                        .putExtra("DataRequest","Data response is successfully sent"));
+                sendDataSetForActivity();
             }
         };
         context.registerReceiver(dataRequestReceiver,
                 new IntentFilter("com.mokdoryeong.team7.SEND_GRAPH_DATA_REQUEST"));
         //This is for initial data of graph view
-        Intent intent = new Intent("com.mokdoryeong.team7.SEND_GRAPH_DATA_RESPONSE");
-        intent.putExtra("DataResponse","Data response is successfully sent");
-
-        ArrayList<CervicalData> dataSet = new ArrayList<CervicalData>();
-        for(CervicalData cd : dataQueue){
-            dataSet.add(new CervicalData(new DateTime(cd.getStartTime().getMillis()),
-                                         new DateTime(cd.getFinishTime().getMillis()),
-                                         cd.getAverageAngle(),
-                                         cd.getCervicalRiskIndex()));
-        }
-        intent.putExtra("Data", dataSet);
-        context.sendBroadcast(intent);
+        sendDataSetForActivity();
     }
 
     public void insert(CervicalData cd){
@@ -93,8 +81,23 @@ public class CervicalDataManager {
     private void removeFromDatabase(CervicalData cd){
         dbOpenHelper.open();
         boolean result = dbOpenHelper.deleteRecord(String.valueOf(cd.getStartTime().getMillis()));
-        Log.d("Database", "Delete succesfully - " + result);
+        Log.d("Database", "Delete successfully - " + result);
         dbOpenHelper.close();
+    }
+
+    private void sendDataSetForActivity(){
+        Intent intent = new Intent("com.mokdoryeong.team7.SEND_GRAPH_DATA_RESPONSE");
+        intent.putExtra("DataResponse","Data response is successfully sent");
+
+        ArrayList<CervicalData> dataSet = new ArrayList<CervicalData>();
+        for(CervicalData cd : dataQueue){
+            dataSet.add(new CervicalData(new DateTime(cd.getStartTime().getMillis()),
+                    new DateTime(cd.getFinishTime().getMillis()),
+                    cd.getAverageAngle(),
+                    cd.getCervicalRiskIndex()));
+        }
+        intent.putExtra("Data", dataSet);
+        context.sendBroadcast(intent);
     }
 
     @Override

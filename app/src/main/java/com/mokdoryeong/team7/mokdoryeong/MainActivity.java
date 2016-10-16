@@ -23,15 +23,24 @@ import java.util.Deque;
 
 public class MainActivity extends AppCompatActivity {
 
-    private boolean isExecutedFirst = true;
-
     private LinearLayout layoutGraph;
     private GraphView gv;
 
     private Button btnWidgetOn;
     private Button btnWidgetOff;
 
-    private BroadcastReceiver dataResponseReceiver;
+    private BroadcastReceiver dataResponseReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String strReceived = intent.getStringExtra("DataResponse");
+            ArrayList<CervicalData> dataArr = (ArrayList<CervicalData>)intent.getSerializableExtra("Data");
+            if(strReceived != null && dataArr != null) {
+                Log.d("Database", strReceived);
+                Log.d("Database", dataArr.get(0).getStartTime().toString());
+                Log.d("Database", dataArr.get(1).getStartTime().toString());
+            }
+        }
+    };;
 
     private Handler handler = new Handler(){
         @Override
@@ -78,10 +87,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-        if(isExecutedFirst){//This is for initial data of Graph view
+        if(BackgroundService.isAlive == false){//This is for initial data of Graph view
             startService(new Intent(MainActivity.this, BackgroundService.class));
             stopService(new Intent(MainActivity.this, BackgroundService.class));
-            isExecutedFirst = false;
         }
         loadCervicalDataFromService();
         gv = new GraphView(this, handler);
@@ -90,34 +98,22 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause(){
-        super.onPause();
         unregisterReceiver(dataResponseReceiver);
+        super.onPause();
     }
 
     @Override
     protected void onDestroy(){
-        unregisterReceiver(dataResponseReceiver);
         super.onDestroy();
     }
 
     private void loadCervicalDataFromService(){
+        registerReceiver(dataResponseReceiver,
+                new IntentFilter("com.mokdoryeong.team7.SEND_GRAPH_DATA_RESPONSE"));
+
         Intent intent = new Intent("com.mokdoryeong.team7.SEND_GRAPH_DATA_REQUEST");
         intent.putExtra("DataRequest", "Data request is successfully sent");
         sendBroadcast(intent);
-
-        dataResponseReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                String strReceived = intent.getStringExtra("DataResponse");
-                ArrayList<CervicalData> dataArr = (ArrayList<CervicalData>)intent.getSerializableExtra("Data");
-                Log.d("Database", dataArr.get(0).getStartTime().toString());
-                Log.d("Database", dataArr.get(1).getStartTime().toString());
-                Log.d("Database", strReceived);
-            }
-        };
-
-        registerReceiver(dataResponseReceiver,
-                new IntentFilter("com.mokdoryeong.team7.SEND_GRAPH_DATA_RESPONSE"));
     }
 
 }

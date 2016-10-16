@@ -18,6 +18,8 @@ import android.widget.Toast;
 
 public class BackgroundService extends Service {
 
+    public static boolean isAlive = false;
+
     private WindowManager wm;
 
     private PitchCalculator pc;
@@ -31,7 +33,6 @@ public class BackgroundService extends Service {
         public void handleMessage(Message msg) {
             Intent intent = new Intent(BackgroundService.this, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(BackgroundService.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
             Toast.makeText(BackgroundService.this, "Background Service", Toast.LENGTH_SHORT).show();
         }
     };
@@ -58,6 +59,9 @@ public class BackgroundService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        //Change service state
+        isAlive = true;
+
         //For widget
         wm = (WindowManager)getSystemService(WINDOW_SERVICE);
         widget = new WidgetView(this, wm);
@@ -93,8 +97,12 @@ public class BackgroundService extends Service {
 
     @Override
     public void onDestroy() {
+        //Change Service state
+        isAlive = false;
+
         widgetThread.abort();
         widgetThread = null;
+
 
         if(widget != null) {
             ((WindowManager) getSystemService(WINDOW_SERVICE)).removeView(widget);
