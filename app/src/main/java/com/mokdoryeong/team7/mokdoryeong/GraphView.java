@@ -11,6 +11,10 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import org.joda.time.DateTime;
+import org.joda.time.Period;
+
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -20,29 +24,25 @@ import java.util.LinkedHashMap;
  */
 public class GraphView extends ImageView {
 
-    private final int DATA_COUNT = 8;
-
     private float width;
     private float height;
 
-    private Handler handler;
-    private LinkedHashMap<Calendar, Float> dataSet;
+    private ArrayList<CervicalData> dataSet;
 
-    public GraphView(Context context, Handler handler) {
+    private int hoursShowing = 6;
+
+    public GraphView(Context context) {
         super(context);
-        this.handler = handler;
         initSettings();
     }
 
-    public GraphView(Context context, Handler handler, AttributeSet attrs) {
+    public GraphView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        this.handler = handler;
         initSettings();
     }
 
-    public GraphView(Context context, Handler handler, AttributeSet attrs, int defStyleAttr) {
+    public GraphView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        this.handler = handler;
         initSettings();
     }
 
@@ -54,51 +54,61 @@ public class GraphView extends ImageView {
     }
 
     private void initSettings(){
-
+        dataSet = new ArrayList<CervicalData>();
         this.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                                             ViewGroup.LayoutParams.MATCH_PARENT));
         this.setBackgroundColor(Color.LTGRAY);
+    }
 
-        dataSet = new LinkedHashMap<Calendar, Float>();
+    private void cutTimeSpan(ArrayList<CervicalData> dataSet){
+        this.dataSet.clear();
+        DateTime graphStartTime = DateTime.now().minusHours(hoursShowing);
 
-        //Graph sample data
-        Calendar today = Calendar.getInstance();
-        Calendar after1Hour = Calendar.getInstance();
-        after1Hour.add(Calendar.HOUR, 1);
-        dataSet.put(today, 20.0f);
-        dataSet.put(after1Hour, 30.0f);
+        for(CervicalData c : dataSet){
+            if(c.getStartTime().isBefore(graphStartTime))
+                break;
+            this.dataSet.add(c);
+        }
+    }
+
+    public void update(ArrayList<CervicalData> dataSet){
+        cutTimeSpan(dataSet);
+        invalidate();
+    }
+
+    public void setHoursShowing(int hoursShowing){
+        this.hoursShowing = hoursShowing;
     }
 
     protected void onDraw(Canvas canvas){
-        Paint paint = new Paint();
 
-        //For bottom axis bar
+        if(width == 0 || height == 0)
+            return;
+
+        Paint paint = new Paint();
         paint.setColor(Color.BLACK);
         paint.setStrokeWidth(2);
 
-        canvas.drawLine(0, height * 0.85f, width, height * 0.85f, paint);
-
-        Calendar timeStamp = Calendar.getInstance();
-        timeStamp.add(Calendar.HOUR_OF_DAY, -4);
-
-        paint.setTextSize(30.0f);
-        paint.setTextAlign(Paint.Align.CENTER);
-
-        float incrementPoint = 0.0f;
-
-        for(int i = 0; i < 6; ++i){
-            if(i >= 1 && i <= 4) {
-
-                canvas.drawText(String.valueOf(timeStamp.get(Calendar.HOUR_OF_DAY)) + "시",
-                        width * incrementPoint, height * 0.95f, paint);
-                canvas.drawCircle(width * incrementPoint, height * 0.95f, 5, paint);
-                timeStamp.add(Calendar.HOUR_OF_DAY, 1);
-                incrementPoint += 0.24f;
-            }else {
-                incrementPoint += 0.14f;
-            }
-        }
+        //For bottom axis bar
         float graphHeight = height * 0.85f;
+        canvas.drawLine(0, graphHeight, width, graphHeight, paint);
+
+        paint.setColor(Color.RED);
+        paint.setStrokeWidth(5);
+
+        //Drawing data
+        long graphStartTime = DateTime.now().minusHours(hoursShowing).getMillis();
+        long totalTimeSpan = DateTime.now().getMillis() - graphStartTime;
+
+        for(CervicalData c : dataSet){
+            float finishTimeProp = (float)(c.getFinishTime().getMillis() - graphStartTime) / totalTimeSpan;
+            float startTimeProp = (float)(c.getStartTime().getMillis() - graphStartTime) / totalTimeSpan;
+            float dataProp = c.getAverageAngle() / 90.0f;
+
+//            canvas.drawCircle(width * finishTimeProp, graphHeight * dataProp, 5.0f, paint);
+//            canvas.drawCircle(width * startTimeProp, graphHeight * dataProp, 5.0f, paint);
+            canvas.drawLine(width * finishTimeProp, graphHeight * dataProp, width * startTimeProp, graphHeight * dataProp, paint);
+        }
     }
 
 }

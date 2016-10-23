@@ -35,9 +35,8 @@ public class MainActivity extends AppCompatActivity {
             String strReceived = intent.getStringExtra("DataResponse");
             ArrayList<CervicalData> dataArr = (ArrayList<CervicalData>)intent.getSerializableExtra("Data");
             if(strReceived != null && dataArr != null) {
+                gv.update(dataArr);
                 Log.d("Database", strReceived);
-                Log.d("Database", dataArr.get(0).getStartTime().toString());
-                Log.d("Database", dataArr.get(1).getStartTime().toString());
             }
         }
     };;
@@ -81,6 +80,9 @@ public class MainActivity extends AppCompatActivity {
                 stopService(new Intent(MainActivity.this, BackgroundService.class));
             }
         });
+
+        gv = new GraphView(this);
+        layoutGraph.addView(gv);
     }
 
 
@@ -89,11 +91,11 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         if(BackgroundService.isAlive == false){//This is for initial data of Graph view
             startService(new Intent(MainActivity.this, BackgroundService.class));
+            loadCervicalDataFromService();
             stopService(new Intent(MainActivity.this, BackgroundService.class));
+        }else {
+            loadCervicalDataFromService();
         }
-        loadCervicalDataFromService();
-        gv = new GraphView(this, handler);
-        layoutGraph.addView(gv);
     }
 
     @Override

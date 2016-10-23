@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
-import android.os.Parcelable;
 import android.util.Log;
 
 import org.joda.time.DateTime;
