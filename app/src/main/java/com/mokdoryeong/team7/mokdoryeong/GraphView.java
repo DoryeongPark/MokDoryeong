@@ -24,12 +24,16 @@ import java.util.LinkedHashMap;
  */
 public class GraphView extends ImageView {
 
+    public static final int MODE_HOUR = 0;
+    public static final int MODE_DAY = 1;
+    public static final int MODE_WEEK= 2;
+
     private float width;
     private float height;
 
     private ArrayList<CervicalData> dataSet;
 
-    private int hoursShowing = 6;
+    private int currentMode = MODE_HOUR;
 
     public GraphView(Context context) {
         super(context);
@@ -62,7 +66,14 @@ public class GraphView extends ImageView {
 
     private void cutTimeSpan(ArrayList<CervicalData> dataSet){
         this.dataSet.clear();
-        DateTime graphStartTime = DateTime.now().minusHours(hoursShowing);
+        DateTime graphStartTime;
+
+        if(currentMode == MODE_HOUR)
+            graphStartTime = DateTime.now().minusHours(6);
+        else if(currentMode == MODE_DAY)
+            graphStartTime = DateTime.now().minusDays(6);
+        else
+            graphStartTime = DateTime.now().minusWeeks(6);
 
         for(CervicalData c : dataSet){
             if(c.getStartTime().isBefore(graphStartTime))
@@ -76,12 +87,11 @@ public class GraphView extends ImageView {
         invalidate();
     }
 
-    public void setHoursShowing(int hoursShowing){
-        this.hoursShowing = hoursShowing;
+    public void setMode(int mode){
+        this.currentMode = mode;
     }
 
     protected void onDraw(Canvas canvas){
-
         if(width == 0 || height == 0)
             return;
 
@@ -96,18 +106,13 @@ public class GraphView extends ImageView {
         paint.setColor(Color.RED);
         paint.setStrokeWidth(5);
 
-        //Drawing data
-        long graphStartTime = DateTime.now().minusHours(hoursShowing).getMillis();
-        long totalTimeSpan = DateTime.now().getMillis() - graphStartTime;
+        //Draw data as view
+        if(currentMode == MODE_HOUR){
 
-        for(CervicalData c : dataSet){
-            float finishTimeProp = (float)(c.getFinishTime().getMillis() - graphStartTime) / totalTimeSpan;
-            float startTimeProp = (float)(c.getStartTime().getMillis() - graphStartTime) / totalTimeSpan;
-            float dataProp = c.getAverageAngle() / 90.0f;
+        }else if(currentMode == MODE_DAY){
 
-//            canvas.drawCircle(width * finishTimeProp, graphHeight * dataProp, 5.0f, paint);
-//            canvas.drawCircle(width * startTimeProp, graphHeight * dataProp, 5.0f, paint);
-            canvas.drawLine(width * finishTimeProp, graphHeight * dataProp, width * startTimeProp, graphHeight * dataProp, paint);
+        }else{
+
         }
     }
 
