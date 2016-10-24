@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Vector;
 
 /**
  * Created by park on 2016-10-11.
@@ -106,14 +107,54 @@ public class GraphView extends ImageView {
         paint.setColor(Color.RED);
         paint.setStrokeWidth(5);
 
+        DateTime[] borderTimes = new DateTime[6];
+        Float[] borderData = new Float[6];
+
         //Draw data as view
-        if(currentMode == MODE_HOUR){
+        if(currentMode == MODE_HOUR)
+            for (int i = 0; i < 6; ++i)
+                borderTimes[i] = DateTime.now().minusHours(i + 1);
+        else if(currentMode == MODE_DAY)
+            for(int i = 0; i < 6; ++i)
+                borderTimes[i] = DateTime.now().minusHours((i + 1) * 4);
+        else
+            for(int i = 0; i < 6; ++i)
+                borderTimes[i] = DateTime.now().minusDays(i + 1);
 
-        }else if(currentMode == MODE_DAY){
+        int borderCount = 0;
+        Vector<Vector<Float>> bucket = new Vector<Vector<Float>>(6);
+        for(int i = 0; i < 6; ++i)
+            bucket.add(new Vector<Float>());
 
-        }else{
-
+        for(int i = 0; i < dataSet.size(); ++i){
+            CervicalData currentData = dataSet.get(i);
+            if(currentData.getStartTime().isAfter(borderTimes[borderCount]))
+                bucket.get(borderCount).add(currentData.getAverageAngle());
+            else {
+                ++borderCount;
+                --i;
+            }
         }
+
+        for(int i = 0; i < 6; ++i){
+            float sum = 0;
+            for(float f : bucket.get(i))
+                sum += f;
+            if(bucket.get(i).size() != 0)
+                borderData[i] = sum / bucket.get(i).size();
+            else
+                borderData[i] = 0.0f;
+        }
+
+        float startPoint = width * 11.0f / 12.0f;
+        float interval = width / 6.0f;
+
+        for(int i = 0; i < 6; ++i){
+            if(borderData[i] != 0.0f)
+                canvas.drawCircle(startPoint, graphHeight * (borderData[i] / 90.0f), 10.0f, paint);
+            startPoint -= interval;
+        }
+
     }
 
 }
