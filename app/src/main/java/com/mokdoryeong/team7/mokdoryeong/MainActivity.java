@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import org.opencv.android.OpenCVLoader;
+import org.opencv.engine.OpenCVEngineInterface;
 
 import java.io.Serializable;
 import java.util.ArrayList;

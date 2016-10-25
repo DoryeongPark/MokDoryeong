@@ -151,7 +151,7 @@ public class GraphView extends ImageView {
 
         for(int i = 0; i < 6; ++i){
             if(borderData[i] != 0.0f)
-                canvas.drawCircle(startPoint, graphHeight * (borderData[i] / 90.0f), 10.0f, paint);
+                canvas.drawCircle(startPoint, graphHeight * (1.0f - borderData[i] / 90.0f), 10.0f, paint);
             startPoint -= interval;
         }
 
