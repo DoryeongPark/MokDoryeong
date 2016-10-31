@@ -40,11 +40,10 @@ public class BackgroundService extends Service {
     private BroadcastReceiver windowStateReceiver = new BroadcastReceiver(){
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals(Intent.ACTION_SCREEN_ON)){
+            if(intent.getAction().equals(Intent.ACTION_SCREEN_ON))
                 pc.turnOn();
-            }else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)){
+            else if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF))
                 pc.turnOff();
-            }
         }
     };
 
@@ -102,7 +101,6 @@ public class BackgroundService extends Service {
 
         widgetThread.abort();
         widgetThread = null;
-
 
         if(widget != null) {
             ((WindowManager) getSystemService(WINDOW_SERVICE)).removeView(widget);

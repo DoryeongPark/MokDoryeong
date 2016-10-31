@@ -15,12 +15,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import org.opencv.android.OpenCVLoader;
-import org.opencv.engine.OpenCVEngineInterface;
-
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Deque;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button btnWidgetOn;
     private Button btnWidgetOff;
+    private Button btnDiagnosis;
 
     private BroadcastReceiver dataResponseReceiver = new BroadcastReceiver() {
         @Override
@@ -51,12 +47,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    static{
-        if(OpenCVLoader.initDebug())
-            Log.d("OpenCV", "OpenCV successfully loaded");
-        else
-            Log.d("OpenCV", "OpenCV not loaded");
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
         btnWidgetOn = (Button)findViewById(R.id.btn_widgeton);
         btnWidgetOff = (Button)findViewById(R.id.btn_widgetoff);
+        btnDiagnosis = (Button)findViewById(R.id.btn_diagnosis);
+
         btnWidgetOn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -79,6 +71,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(),"WidgetService 종료", Toast.LENGTH_SHORT).show();
                 stopService(new Intent(MainActivity.this, BackgroundService.class));
+            }
+        });
+        btnDiagnosis.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), DiagnosisCreator.class);
+                startActivity(intent);
             }
         });
 
