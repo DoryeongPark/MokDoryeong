@@ -19,6 +19,10 @@ import org.opencv.engine.OpenCVEngineInterface;
 
 public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.CvCameraViewListener2{
 
+    static{
+        System.loadLibrary("MyOpencvLibs");
+    }
+
     Mat imgFrame;
     JavaCameraView javaCameraView;
     BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this){
@@ -86,6 +90,8 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         imgFrame = inputFrame.rgba();
+        
+        OpencvRoutine.nonFrontalFaceDetection(imgFrame.getNativeObjAddr());
         return imgFrame;
     }
 }

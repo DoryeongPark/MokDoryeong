@@ -5,4 +5,5 @@ package com.mokdoryeong.team7.mokdoryeong;
  */
 
 public class OpencvRoutine {
+    public static native void nonFrontalFaceDetection(long addrRgba);
 }
