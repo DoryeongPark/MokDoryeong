@@ -10,21 +10,34 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.engine.OpenCVEngineInterface;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+
 /**
  * Created by park on 2016-10-31.
  */
 
 public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.CvCameraViewListener2{
 
+    private int faceCenterX;
+    private int faceCenterY;
+
+    private int measureCounter = 0;
+    private int measureInterval = 5;
+
+    private Mat imgFrame;
+    private JavaCameraView javaCameraView;
+
     static{
         System.loadLibrary("MyOpencvLibs");
     }
 
-    Mat imgFrame;
-    JavaCameraView javaCameraView;
+
     BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this){
         @Override
         public void onManagerConnected(int status) {
@@ -43,6 +56,8 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_diagnosis);
+
+        faceCenterX = faceCenterY = 0;
 
         javaCameraView = (JavaCameraView)findViewById(R.id.java_camera_view);
         javaCameraView.setVisibility(View.VISIBLE);
@@ -89,9 +104,26 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        ++measureCounter;
         imgFrame = inputFrame.rgba();
-        
-        OpencvRoutine.nonFrontalFaceDetection(imgFrame.getNativeObjAddr());
+
+       if(measureCounter == measureInterval) {
+            int[] result = OpencvRoutine.nonFrontalFaceDetection(imgFrame.getNativeObjAddr(), faceCenterX, faceCenterY);
+            measureCounter = 0;
+
+              Log.d("OpenCV", result[0] + " " + result[1]);
+
+           faceCenterX = result[0];
+           faceCenterY = result[1];
+
+           if(result[0] == 0 && result[1] == 0)
+               faceCenterX = faceCenterY = 0;
+
+       }
+
+        Core.circle(imgFrame, new Point(faceCenterY, imgFrame.rows() - faceCenterX), 4, new Scalar(0, 255, 0), 3);
+
+
         return imgFrame;
     }
 }
