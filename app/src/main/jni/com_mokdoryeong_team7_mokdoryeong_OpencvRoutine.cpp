@@ -12,12 +12,21 @@ JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine
     int faceX2 = (int)x2 / 3;
     int faceY2 = (int)y2 / 3;
 
-    resize(frame, frame, Size(frameCols / 3, frameRows / 3), 0, 0, CV_INTER_NN);
+    try {
+        resize(frame, frame, Size(frameCols / 3, frameRows / 3), 0, 0, CV_INTER_NN);
+    }catch(Exception e){
+
+        faceX1 *= 3; faceY1 *= 3; faceX2 *= 3; faceY2 *= 3;
+        jintArray facePoint = env->NewIntArray(4);
+        jint points[4] = {(jint)faceX1, (jint)faceY1, (jint)faceX2, (jint)faceY2};
+        env->SetIntArrayRegion(facePoint, 0, 4, points);
+        return facePoint;
+
+    }
 
     detect(frame, faceX1, faceY1, faceX2, faceY2);
 
     faceX1 *= 3; faceY1 *= 3; faceX2 *= 3; faceY2 *= 3;
-
     jintArray facePoint = env->NewIntArray(4);
     jint points[4] = {(jint)faceX1, (jint)faceY1, (jint)faceX2, (jint)faceY2};
     env->SetIntArrayRegion(facePoint, 0, 4, points);

@@ -14,7 +14,6 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 
 /**
@@ -23,55 +22,15 @@ import org.opencv.core.Scalar;
 
 public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.CvCameraViewListener2{
 
-    private class FaceDetectionRoutine extends Thread{
-        private boolean isAlive = false;
-
-        public void run() {
-            isAlive = true;
-            while (true) {
-                if (isAlive == false)
-                    break;
-            }
-        }
-        public void abort(){
-            isAlive = true;
-        }
-
-        public boolean isRunning(){
-            return isAlive;
-        }
-
-        public void detectFaceROI(Mat clonedImgFrame){
-            int[] result = OpencvRoutine.nonFrontalFaceDetection(clonedImgFrame.getNativeObjAddr(), faceX1, faceY1, faceX2, faceY2);
-            Log.d("OpenCV", result[0] + " " + result[1]);
-
-            faceX1 = result[0];
-            faceY1 = result[1];
-            faceX2 = result[2];
-            faceY2 = result[3];
-
-            if(result[0] == 0 && result[2] == 0)
-                faceX1 = faceY1 = faceX2 = faceY2 = 0;
-
-        }
-
-
-
-     };
-
     private int faceX1;
     private int faceY1;
     private int faceX2;
     private int faceY2;
 
-    private int measureCounter = 0;
-    private int measureInterval = 5;
-
     private Mat imgFrame;
     private JavaCameraView javaCameraView;
 
     private FaceDetectionRoutine faceDetectionRoutine = null;
-
 
     static{
         System.loadLibrary("MyOpencvLibs");
@@ -106,30 +65,35 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     @Override
     protected void onPause(){
         super.onPause();
-        if(javaCameraView != null)
-            javaCameraView.disableView();
 
         if(faceDetectionRoutine != null) {
             faceDetectionRoutine.abort();
             faceDetectionRoutine = null;
         }
+
+        if(javaCameraView != null)
+            javaCameraView.disableView();
+
     }
 
     @Override
     protected void onDestroy(){
-        super.onPause();
-        if(javaCameraView != null)
-            javaCameraView.disableView();
+        super.onDestroy();
 
         if(faceDetectionRoutine != null) {
             faceDetectionRoutine.abort();
             faceDetectionRoutine = null;
         }
+
+        if(javaCameraView != null)
+            javaCameraView.disableView();
+
     }
 
     @Override
     protected void onResume(){
         super.onResume();
+
         if(OpenCVLoader.initDebug()) {
             Log.d("OpenCV", "OpenCV successfully loaded");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
@@ -140,7 +104,7 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         }
 
         if(faceDetectionRoutine == null) {
-            faceDetectionRoutine = new FaceDetectionRoutine();
+            faceDetectionRoutine = new FaceDetectionRoutine(this);
             faceDetectionRoutine.start();
         }
     }
@@ -158,20 +122,20 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        ++measureCounter;
+
         imgFrame = inputFrame.rgba();
 
 
-        if(measureCounter == measureInterval){
-
-            if(faceDetectionRoutine.isRunning() == true){
-                Mat clonedImgFrame = new Mat();
-                imgFrame.copyTo(clonedImgFrame);
-                faceDetectionRoutine.detectFaceROI(clonedImgFrame);
-            }
-
-            measureCounter = 0;
-        }
+//        if(measureCounter == measureInterval){
+//
+//            if(faceDetectionRoutine.isRunning() == true){
+//                Mat clonedImgFrame = new Mat();
+//                imgFrame.copyTo(clonedImgFrame);
+//                faceDetectionRoutine.detectFaceROI(clonedImgFrame);
+//            }
+//
+//            measureCounter = 0;
+//        }
 
         //Core.circle(imgFrame, new Point(faceCenterY, imgFrame.rows() - faceCenterX), 4, new Scalar(0, 255, 0), 3);
 
@@ -179,5 +143,18 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
                 new Point(faceY2, imgFrame.rows() - faceX2), new Scalar(0, 0, 255), 5);
 
         return imgFrame;
+    }
+
+    public Mat getCopiedFrame() {
+        if(imgFrame == null)
+            return null;
+        Mat copiedFrame = new Mat();
+        imgFrame.copyTo(copiedFrame);
+        return copiedFrame;
+    }
+
+    public void setPoints(int x1, int y1, int x2, int y2){
+        faceX1 = x1; faceY1 = y1;
+        faceX2 = x2; faceY2 = y2;
     }
 }
