@@ -16,7 +16,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
 
 /**
  * Created by park on 2016-10-31.
@@ -24,8 +23,46 @@ import org.opencv.imgproc.Imgproc;
 
 public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.CvCameraViewListener2{
 
-    private int faceCenterX;
-    private int faceCenterY;
+    private class FaceDetectionRoutine extends Thread{
+        private boolean isAlive = false;
+
+        public void run() {
+            isAlive = true;
+            while (true) {
+                if (isAlive == false)
+                    break;
+            }
+        }
+        public void abort(){
+            isAlive = true;
+        }
+
+        public boolean isRunning(){
+            return isAlive;
+        }
+
+        public void detectFaceROI(Mat clonedImgFrame){
+            int[] result = OpencvRoutine.nonFrontalFaceDetection(clonedImgFrame.getNativeObjAddr(), faceX1, faceY1, faceX2, faceY2);
+            Log.d("OpenCV", result[0] + " " + result[1]);
+
+            faceX1 = result[0];
+            faceY1 = result[1];
+            faceX2 = result[2];
+            faceY2 = result[3];
+
+            if(result[0] == 0 && result[2] == 0)
+                faceX1 = faceY1 = faceX2 = faceY2 = 0;
+
+        }
+
+
+
+     };
+
+    private int faceX1;
+    private int faceY1;
+    private int faceX2;
+    private int faceY2;
 
     private int measureCounter = 0;
     private int measureInterval = 5;
@@ -33,10 +70,12 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     private Mat imgFrame;
     private JavaCameraView javaCameraView;
 
+    private FaceDetectionRoutine faceDetectionRoutine = null;
+
+
     static{
         System.loadLibrary("MyOpencvLibs");
     }
-
 
     BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this){
         @Override
@@ -57,7 +96,7 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_diagnosis);
 
-        faceCenterX = faceCenterY = 0;
+        faceX1 = faceY1 = faceX2 = faceY2 = 0;
 
         javaCameraView = (JavaCameraView)findViewById(R.id.java_camera_view);
         javaCameraView.setVisibility(View.VISIBLE);
@@ -69,6 +108,11 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         super.onPause();
         if(javaCameraView != null)
             javaCameraView.disableView();
+
+        if(faceDetectionRoutine != null) {
+            faceDetectionRoutine.abort();
+            faceDetectionRoutine = null;
+        }
     }
 
     @Override
@@ -76,6 +120,11 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         super.onPause();
         if(javaCameraView != null)
             javaCameraView.disableView();
+
+        if(faceDetectionRoutine != null) {
+            faceDetectionRoutine.abort();
+            faceDetectionRoutine = null;
+        }
     }
 
     @Override
@@ -88,6 +137,11 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         else {
             Log.d("OpenCV", "OpenCV not loaded");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_9, this, mLoaderCallback);
+        }
+
+        if(faceDetectionRoutine == null) {
+            faceDetectionRoutine = new FaceDetectionRoutine();
+            faceDetectionRoutine.start();
         }
     }
 
@@ -107,22 +161,22 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         ++measureCounter;
         imgFrame = inputFrame.rgba();
 
-       if(measureCounter == measureInterval) {
-            int[] result = OpencvRoutine.nonFrontalFaceDetection(imgFrame.getNativeObjAddr(), faceCenterX, faceCenterY);
+
+        if(measureCounter == measureInterval){
+
+            if(faceDetectionRoutine.isRunning() == true){
+                Mat clonedImgFrame = new Mat();
+                imgFrame.copyTo(clonedImgFrame);
+                faceDetectionRoutine.detectFaceROI(clonedImgFrame);
+            }
+
             measureCounter = 0;
+        }
 
-              Log.d("OpenCV", result[0] + " " + result[1]);
+        //Core.circle(imgFrame, new Point(faceCenterY, imgFrame.rows() - faceCenterX), 4, new Scalar(0, 255, 0), 3);
 
-           faceCenterX = result[0];
-           faceCenterY = result[1];
-
-           if(result[0] == 0 && result[1] == 0)
-               faceCenterX = faceCenterY = 0;
-
-       }
-
-        Core.circle(imgFrame, new Point(faceCenterY, imgFrame.rows() - faceCenterX), 4, new Scalar(0, 255, 0), 3);
-
+        Core.rectangle(imgFrame, new Point(faceY1, imgFrame.rows() - faceX1),
+                new Point(faceY2, imgFrame.rows() - faceX2), new Scalar(0, 0, 255), 5);
 
         return imgFrame;
     }

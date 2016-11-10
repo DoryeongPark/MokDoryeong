@@ -15,10 +15,10 @@ using namespace cv;
 extern "C" {
 #endif
 
-void detect(Mat& frame, int& x, int& y);
+void detect(Mat& frame, int& x1, int& y1, int& x2, int& y2);
 
 JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine_nonFrontalFaceDetection
-(JNIEnv*, jclass, jlong, jint, jint);
+(JNIEnv*, jclass, jlong, jint, jint, jint, jint);
 #ifdef __cplusplus
 }
 #endif

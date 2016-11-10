@@ -7,5 +7,5 @@ import org.opencv.core.Rect;
  */
 
 public class OpencvRoutine {
-    public static native int[] nonFrontalFaceDetection(long addrRgba, int x, int y);
+    public static native int[] nonFrontalFaceDetection(long addrRgba, int x1, int y1, int x2, int y2);
 }

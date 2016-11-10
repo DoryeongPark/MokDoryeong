@@ -1,24 +1,31 @@
 #include "com_mokdoryeong_team7_mokdoryeong_OpencvRoutine.h"
 JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine_nonFrontalFaceDetection(JNIEnv* env, jclass jcls, jlong addrRgba,
-        jint x, jint y){
+        jint x1, jint y1, jint x2, jint y2){
 
     Mat& frame = *(Mat*) addrRgba;
-    int frameWidth = frame.cols;
+
+    int frameCols = frame.cols;
     int frameRows = frame.rows;
 
-    int centerX = (int)x;
-    int centerY = (int)y;
+    int faceX1 = (int)x1 / 3;
+    int faceY1 = (int)y1 / 3;
+    int faceX2 = (int)x2 / 3;
+    int faceY2 = (int)y2 / 3;
 
-    detect(frame, centerX, centerY);
+    resize(frame, frame, Size(frameCols / 3, frameRows / 3), 0, 0, CV_INTER_NN);
 
-    jintArray facePoint = env->NewIntArray(2);
-    jint xy[2] = {(jint)centerX, (jint)centerY};
-    env->SetIntArrayRegion(facePoint, 0, 2, xy);
+    detect(frame, faceX1, faceY1, faceX2, faceY2);
+
+    faceX1 *= 3; faceY1 *= 3; faceX2 *= 3; faceY2 *= 3;
+
+    jintArray facePoint = env->NewIntArray(4);
+    jint points[4] = {(jint)faceX1, (jint)faceY1, (jint)faceX2, (jint)faceY2};
+    env->SetIntArrayRegion(facePoint, 0, 4, points);
     return facePoint;
 
 }
 
-void detect(Mat& frame, int& x, int& y){
+void detect(Mat& frame, int& x1, int& y1, int& x2, int& y2){
 
     transpose(frame, frame);
     flip(frame, frame, 1);
@@ -42,24 +49,26 @@ void detect(Mat& frame, int& x, int& y){
 
     for( size_t i = 0; i < faces.size(); i++ )
     {
-        Point center( faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
-        //ellipse( frame, center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 255, 0, 255 ), 4, 8, 0 );
+        Point center( faces[i].x + faces[i].width * 0.5, faces[i].y + faces[i].height * 0.5 );
 
-        int currentCenterX = faces[i].x + faces[i].width / 2;
-        int currentCenterY = faces[i].y + faces[i].height / 2;
+        int currentX1 = faces[i].x;
+        int currentY1 = faces[i].y;
+        int currentX2 = faces[i].x + faces[i].width;
+        int currentY2 = faces[i].y + faces[i].height;
 
-        if( (x > currentCenterX - 40  && x < currentCenterX + 40 && y > currentCenterY - 40 && y < currentCenterY + 40) ||
+        if( (x1 > currentX1 - 40 && x1 < currentX1 + 40 && y1 > currentY1 - 40 && y1 < currentY1 + 40) ||
                 (checkExistance == false && i == faces.size() - 1)){
 
-            rectangle( frame,
-                       Point(faces[i].x, faces[i].y),
-                       Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height),
-                       Scalar(255, 0, 0), 2, 8, 0);
-
-            x = currentCenterX;
-            y = currentCenterY;
+//            rectangle( frame,
+//                       Point(faces[i].x, faces[i].y),
+//                       Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height),
+//                       Scalar(255, 0, 0), 2, 8, 0);
 
             elect = faces[i];
+
+            x1 = elect.x;               y1 = elect.y;
+            x2 = elect.x + elect.width; y2 = elect.y + elect.height;
+
             checkExistance = true;
             break;
         }
@@ -68,9 +77,6 @@ void detect(Mat& frame, int& x, int& y){
 
 
     if(checkExistance == false)
-        x = y = 0;
-
-    transpose(frame, frame);
-    flip(frame, frame, 0);
+        x1 = y1 = x2 = y2 = 0;
 
 }
