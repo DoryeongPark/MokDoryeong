@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:id="@+id/diagnosis_mainlayout"
+    android:gravity="center"
+    >
 
     <org.opencv.android.JavaCameraView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/java_camera_view"
         />
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/target_view"
+        android:src="@drawable/targetview"
+        android:gravity="center_vertical|center_horizontal"
+        android:layout_marginTop="100px"/>
 
 </FrameLayout>
