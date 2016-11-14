@@ -1,16 +1,15 @@
 package com.mokdoryeong.team7.mokdoryeong;
 
 import android.app.Activity;
-import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -29,7 +28,6 @@ import java.util.ArrayList;
 /**
  * Created by park on 2016-10-31.
  */
-
 public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.CvCameraViewListener2{
 
     private ArrayList<Rect> roiCandidates;
@@ -45,6 +43,9 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     private JavaCameraView javaCameraView;
 
     private ImageView targetView = null;
+    private View guideView = null;
+    private View progressView = null;
+
     private Rect faceDetectionArea = null;
 
     private FaceDetectionRoutine faceDetectionRoutine = null;
@@ -83,6 +84,32 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
     }
 
+    private void loadGuideView(){
+        if(guideView != null)
+            mainLayout.removeView(guideView);
+
+        DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
+        int guideViewWidth = (int)((float)dm.widthPixels * 0.16f);
+        int guideViewHeight= (int)((float)dm.heightPixels);
+        guideView = (View)findViewById(R.id.guide_view);
+        guideView.setLayoutParams(new FrameLayout.LayoutParams(guideViewWidth, guideViewHeight));
+
+    }
+
+    private void loadProgressView(){
+        if(progressView != null)
+            mainLayout.removeView(progressView);
+
+        DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
+        int progressViewWidth = (int)((float)dm.widthPixels * 0.16f);
+        int progressViewHeight= (int)((float)dm.heightPixels);
+        progressView = (View)findViewById(R.id.progress_view);
+        progressView.setLayoutParams(new FrameLayout.LayoutParams(progressViewWidth, progressViewHeight));
+        ViewGroup.MarginLayoutParams margin = (ViewGroup.MarginLayoutParams)progressView.getLayoutParams();
+        margin.setMargins((int)((float)(dm.widthPixels - progressViewWidth)), 0, 0, 0);
+        progressView.setLayoutParams(margin);
+    }
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_diagnosis);
@@ -96,9 +123,10 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         javaCameraView.setCvCameraViewListener(this);
 
         loadTargetView();
+        loadGuideView();
+        loadProgressView();
 
         roiCandidates = new ArrayList<Rect>();
-
     }
 
     @Override
@@ -170,9 +198,7 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-
         imgFrame = inputFrame.rgba();
-
 
         if(faceDetectionArea.contains(faceX1, faceY1, faceX2, faceY2))
             Core.rectangle(imgFrame, new Point(faceX1, faceY1),
@@ -190,7 +216,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     }
 
     public void setPoints(int x1, int y1, int x2, int y2){
-
         faceX1 = y1; faceY1 = imgFrame.rows() - x1;
         faceX2 = y2; faceY2 = imgFrame.rows() - x2;
 
@@ -201,8 +226,29 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
             if (roiCandidates.isEmpty()) {
                 roiCandidates.add(new Rect(faceX1, faceY1, faceX2, faceY2));
                 return;
+            }else{//Second condition - Is detected ROI almost matching with first one
+                int faceCenterX = (faceX1 + faceX2) / 2;
+                int faceCenterY = (faceY1 + faceY2) / 2;
+                int standardCenterX = roiCandidates.get(0).centerX();
+                int standardCenterY = roiCandidates.get(0).centerY();
+                if(faceCenterX > standardCenterX - 30 && faceCenterX < standardCenterX + 30 &&
+                        faceCenterY > standardCenterY - 30 && faceCenterY < standardCenterY + 30) {
+                    roiCandidates.add(new Rect(faceX1, faceY1, faceX2, faceY2));
+                    Log.d("OpenCV", roiCandidates.size() + "");
+                }else{
+                    roiCandidates.clear();
+                }
             }
-
+        }else{
+            return;
         }
     }
+
+    private Bitmap rotateImage(Bitmap src, float degree){
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degree);
+        return Bitmap.createBitmap(src, 0, 0, src.getWidth(),
+                src.getHeight(), matrix, true);
+    }
+
 }

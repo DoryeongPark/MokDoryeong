@@ -17,7 +17,20 @@
         android:layout_height="match_parent"
         android:id="@+id/target_view"
         android:src="@drawable/targetview"
-        android:gravity="center_vertical|center_horizontal"
-        android:layout_marginTop="100px"/>
+        android:gravity="center_vertical|center_horizontal"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/progress_view"
+        android:background="#444444"
+        android:gravity="center_vertical|center_horizontal"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/guide_view"
+        android:background="#444444"
+        android:gravity="center_vertical|center_horizontal"/>
 
 </FrameLayout>

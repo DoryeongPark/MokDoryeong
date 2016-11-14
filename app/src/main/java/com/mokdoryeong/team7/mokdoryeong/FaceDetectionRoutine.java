@@ -40,7 +40,7 @@ public class FaceDetectionRoutine extends Thread {
         }
     }
     public void abort(){
-        isAlive = true;
+        isAlive = false;
     }
 
     public boolean isRunning(){
