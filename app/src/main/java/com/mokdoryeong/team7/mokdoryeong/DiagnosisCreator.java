@@ -2,6 +2,7 @@ package com.mokdoryeong.team7.mokdoryeong;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -21,6 +22,8 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import android.graphics.Rect;
+import android.widget.LinearLayout;
+
 import org.opencv.core.Scalar;
 
 import java.util.ArrayList;
@@ -42,9 +45,10 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     private Mat imgFrame;
     private JavaCameraView javaCameraView;
 
+    private LinearLayout guideViewPlatform = null;
+    private LinearLayout progressViewPlatform = null;
+
     private ImageView targetView = null;
-    private View guideView = null;
-    private View progressView = null;
 
     private Rect faceDetectionArea = null;
 
@@ -85,29 +89,34 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     }
 
     private void loadGuideView(){
-        if(guideView != null)
-            mainLayout.removeView(guideView);
+        if(guideViewPlatform != null)
+            mainLayout.removeView(guideViewPlatform);
 
         DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
         int guideViewWidth = (int)((float)dm.widthPixels * 0.16f);
         int guideViewHeight= (int)((float)dm.heightPixels);
-        guideView = (View)findViewById(R.id.guide_view);
-        guideView.setLayoutParams(new FrameLayout.LayoutParams(guideViewWidth, guideViewHeight));
+        guideViewPlatform = (LinearLayout)findViewById(R.id.guide_view_platform);
+        guideViewPlatform.setLayoutParams(new FrameLayout.LayoutParams(guideViewWidth, guideViewHeight));
+
+        //Sample bitmap code
+        //guideViewPlatform.setImageBitmap(rotateImage(BitmapFactory.decodeResource(getResources(), R.drawable.guideview), -90));
 
     }
 
     private void loadProgressView(){
-        if(progressView != null)
-            mainLayout.removeView(progressView);
+        if(progressViewPlatform != null)
+            mainLayout.removeView(progressViewPlatform);
 
         DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
         int progressViewWidth = (int)((float)dm.widthPixels * 0.16f);
         int progressViewHeight= (int)((float)dm.heightPixels);
-        progressView = (View)findViewById(R.id.progress_view);
-        progressView.setLayoutParams(new FrameLayout.LayoutParams(progressViewWidth, progressViewHeight));
-        ViewGroup.MarginLayoutParams margin = (ViewGroup.MarginLayoutParams)progressView.getLayoutParams();
+        progressViewPlatform = (LinearLayout)findViewById(R.id.progress_view_platform);
+        progressViewPlatform.setLayoutParams(new FrameLayout.LayoutParams(progressViewWidth, progressViewHeight));
+        ViewGroup.MarginLayoutParams margin = (ViewGroup.MarginLayoutParams) progressViewPlatform.getLayoutParams();
         margin.setMargins((int)((float)(dm.widthPixels - progressViewWidth)), 0, 0, 0);
-        progressView.setLayoutParams(margin);
+        progressViewPlatform.setLayoutParams(margin);
+
+
     }
 
     protected void onCreate(Bundle savedInstanceState) {
