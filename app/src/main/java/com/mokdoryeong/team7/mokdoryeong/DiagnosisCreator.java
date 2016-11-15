@@ -17,6 +17,7 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.CvCameraViewListener2{
 
     private ArrayList<Rect> roiCandidates;
+    private Mat finalImageCandidate;
 
     private int faceX1;
     private int faceY1;
@@ -44,6 +46,7 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
     private Mat imgFrame;
     private JavaCameraView javaCameraView;
+    private ImageView diagnosisView;
 
     private LinearLayout guideViewPlatform = null;
     private LinearLayout progressViewPlatform = null;
@@ -97,9 +100,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         int guideViewHeight= (int)((float)dm.heightPixels);
         guideViewPlatform = (LinearLayout)findViewById(R.id.guide_view_platform);
         guideViewPlatform.setLayoutParams(new FrameLayout.LayoutParams(guideViewWidth, guideViewHeight));
-
-        //Sample bitmap code
-        //guideViewPlatform.setImageBitmap(rotateImage(BitmapFactory.decodeResource(getResources(), R.drawable.guideview), -90));
 
     }
 
@@ -191,7 +191,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
             faceDetectionRoutine = new FaceDetectionRoutine(this);
             faceDetectionRoutine.start();
         }
-
     }
 
 
@@ -224,16 +223,20 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         return copiedFrame;
     }
 
-    public void setPoints(int x1, int y1, int x2, int y2){
+    public void setPoints(Mat resultFrame, int x1, int y1, int x2, int y2){
+
         faceX1 = y1; faceY1 = imgFrame.rows() - x1;
         faceX2 = y2; faceY2 = imgFrame.rows() - x2;
 
-        if(faceX1 == 0 && faceX2 == 0)
+        if(resultFrame == null)
             return;
+
         //First condition - Is detected ROI located at appropriate face area
         if(faceDetectionArea.contains(faceX1, faceY1, faceX2, faceY2)) {
             if (roiCandidates.isEmpty()) {
                 roiCandidates.add(new Rect(faceX1, faceY1, faceX2, faceY2));
+                finalImageCandidate = null;
+                finalImageCandidate = resultFrame;
                 return;
             }else{//Second condition - Is detected ROI almost matching with first one
                 int faceCenterX = (faceX1 + faceX2) / 2;
@@ -244,6 +247,10 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
                         faceCenterY > standardCenterY - 30 && faceCenterY < standardCenterY + 30) {
                     roiCandidates.add(new Rect(faceX1, faceY1, faceX2, faceY2));
                     Log.d("OpenCV", roiCandidates.size() + "");
+                    if(roiCandidates.size() == 6) {
+                        makeDiagnosis();
+                        roiCandidates.clear();
+                    }
                 }else{
                     roiCandidates.clear();
                 }
@@ -251,6 +258,19 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         }else{
             return;
         }
+    }
+
+    private void makeDiagnosis(){
+        faceDetectionRoutine.abort();
+        javaCameraView.disableView();
+
+        //Diagnosis Routine...
+
+        diagnosisView = (ImageView)findViewById(R.id.diagnosis_view);
+        Bitmap resultImage = Bitmap.createBitmap(finalImageCandidate.cols(), finalImageCandidate.rows(),Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(finalImageCandidate, resultImage);
+        diagnosisView.setImageBitmap(resultImage);
+        diagnosisView.setVisibility(View.VISIBLE);
     }
 
     private Bitmap rotateImage(Bitmap src, float degree){

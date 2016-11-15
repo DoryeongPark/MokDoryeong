@@ -34,7 +34,11 @@ public class FaceDetectionRoutine extends Thread {
             if(copiedFrame == null)
                 continue;
             detectFaceROI(copiedFrame);
-            diagnosisCreator.setPoints(faceX1, faceY1, faceX2, faceY2);
+
+            if(faceX1 == 0 && faceX2 == 0)
+                copiedFrame = null;
+
+            diagnosisCreator.setPoints(copiedFrame, faceX1, faceY1, faceX2, faceY2);
             try{ Thread.sleep(250); }catch(Exception e){}
 
         }
