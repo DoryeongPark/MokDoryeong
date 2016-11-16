@@ -229,20 +229,19 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         faceX2 = y2; faceY2 = imgFrame.rows() - x2;
 
 
-
         if(resultFrame == null)
             return;
 
         //First condition - Is detected ROI located at appropriate face area
         if(faceDetectionArea.contains(faceX1, faceY1, faceX2, faceY2)) {
             if (roiCandidates.isEmpty()) {
-                roiCandidates.add(new Rect(faceX1, faceY1, faceX2, faceY2));
+                roiCandidates.add(new Rect(x1, y1, x2, y2));
                 finalImageCandidate = null;
                 finalImageCandidate = resultFrame;
                 return;
             }else{//Second condition - Is detected ROI almost matching with first one
-                int faceCenterX = (faceX1 + faceX2) / 2;
-                int faceCenterY = (faceY1 + faceY2) / 2;
+                int faceCenterX = (x1 + x2) / 2;
+                int faceCenterY = (y1 + y2) / 2;
                 int standardCenterX = roiCandidates.get(0).centerX();
                 int standardCenterY = roiCandidates.get(0).centerY();
                 if(faceCenterX > standardCenterX - 20 && faceCenterX < standardCenterX + 20 &&
@@ -275,12 +274,17 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
         int dividePoint = roiCandidates.size();
 
+        DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
+        int dmWidth = dm.widthPixels;
+        int dmHeight = dm.heightPixels;
+
         for(Rect roi : roiCandidates){
             faceStartPointX += roi.right;
             faceStartPointY += (roi.top + roi.bottom) / 2;
             neckStartPointX += roi.right;
             neckStartPointY += roi.bottom;
         }
+
 
         faceStartPointX /= dividePoint;
         faceStartPointY /= dividePoint;
