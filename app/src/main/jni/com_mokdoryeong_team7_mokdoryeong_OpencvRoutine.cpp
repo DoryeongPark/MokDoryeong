@@ -26,6 +26,12 @@ JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine
 
     detect(frame, faceX1, faceY1, faceX2, faceY2);
 
+    //Returns image matrix original size
+    transpose(frame, frame);
+    flip(frame, frame, 0);
+    resize(frame, frame, Size(frameCols, frameRows), 0, 0, CV_INTER_NN);
+
+    //Transfer ROI points to java
     faceX1 *= 3; faceY1 *= 3; faceX2 *= 3; faceY2 *= 3;
     jintArray facePoint = env->NewIntArray(4);
     jint points[4] = {(jint)faceX1, (jint)faceY1, (jint)faceX2, (jint)faceY2};

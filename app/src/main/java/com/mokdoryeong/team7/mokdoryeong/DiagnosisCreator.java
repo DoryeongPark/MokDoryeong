@@ -1,16 +1,19 @@
 package com.mokdoryeong.team7.mokdoryeong;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.os.Bundle;
+import android.os.Message;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.os.Handler;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
@@ -46,7 +49,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
     private Mat imgFrame;
     private JavaCameraView javaCameraView;
-    private ImageView diagnosisView;
 
     private LinearLayout guideViewPlatform = null;
     private LinearLayout progressViewPlatform = null;
@@ -56,7 +58,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     private Rect faceDetectionArea = null;
 
     private FaceDetectionRoutine faceDetectionRoutine = null;
-
     static{
         System.loadLibrary("MyOpencvLibs");
     }
@@ -76,9 +77,8 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
     };
 
     private void loadTargetView(){
-        if(targetView != null){
+        if(targetView != null)
             mainLayout.removeView(targetView);
-        }
 
         DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
         int targetViewWidth = (int)((float)dm.heightPixels * 0.8f);
@@ -228,6 +228,8 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         faceX1 = y1; faceY1 = imgFrame.rows() - x1;
         faceX2 = y2; faceY2 = imgFrame.rows() - x2;
 
+
+
         if(resultFrame == null)
             return;
 
@@ -243,13 +245,12 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
                 int faceCenterY = (faceY1 + faceY2) / 2;
                 int standardCenterX = roiCandidates.get(0).centerX();
                 int standardCenterY = roiCandidates.get(0).centerY();
-                if(faceCenterX > standardCenterX - 30 && faceCenterX < standardCenterX + 30 &&
-                        faceCenterY > standardCenterY - 30 && faceCenterY < standardCenterY + 30) {
-                    roiCandidates.add(new Rect(faceX1, faceY1, faceX2, faceY2));
+                if(faceCenterX > standardCenterX - 20 && faceCenterX < standardCenterX + 20 &&
+                        faceCenterY > standardCenterY - 20 && faceCenterY < standardCenterY + 20) {
+                    roiCandidates.add(new Rect(x1, y1, x2, y2));
                     Log.d("OpenCV", roiCandidates.size() + "");
-                    if(roiCandidates.size() == 6) {
+                    if(roiCandidates.size() == 3) {
                         makeDiagnosis();
-                        roiCandidates.clear();
                     }
                 }else{
                     roiCandidates.clear();
@@ -264,13 +265,37 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         faceDetectionRoutine.abort();
         javaCameraView.disableView();
 
-        //Diagnosis Routine...
+        int[] faceStartPoint = new int[2];
+        int[] neckStartPoint = new int[2];
 
-        diagnosisView = (ImageView)findViewById(R.id.diagnosis_view);
-        Bitmap resultImage = Bitmap.createBitmap(finalImageCandidate.cols(), finalImageCandidate.rows(),Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(finalImageCandidate, resultImage);
-        diagnosisView.setImageBitmap(resultImage);
-        diagnosisView.setVisibility(View.VISIBLE);
+        int faceStartPointX = 0;
+        int faceStartPointY = 0;
+        int neckStartPointX = 0;
+        int neckStartPointY = 0;
+
+        int dividePoint = roiCandidates.size();
+
+        for(Rect roi : roiCandidates){
+            faceStartPointX += roi.right;
+            faceStartPointY += (roi.top + roi.bottom) / 2;
+            neckStartPointX += roi.right;
+            neckStartPointY += roi.bottom;
+        }
+
+        faceStartPointX /= dividePoint;
+        faceStartPointY /= dividePoint;
+        neckStartPointX /= dividePoint;
+        neckStartPointY /= dividePoint;
+
+        faceStartPoint[0] = faceStartPointX; faceStartPoint[1] = faceStartPointY;
+        neckStartPoint[0] = neckStartPointX; neckStartPoint[1] = neckStartPointY;
+
+        Intent intent = new Intent(this, DiagnosisView.class);
+        intent.putExtra("image", finalImageCandidate.nativeObj);
+        intent.putExtra("faceStartPoint", faceStartPoint);
+        intent.putExtra("neckStartPoint", neckStartPoint);
+
+        startActivity(intent);
     }
 
     private Bitmap rotateImage(Bitmap src, float degree){
