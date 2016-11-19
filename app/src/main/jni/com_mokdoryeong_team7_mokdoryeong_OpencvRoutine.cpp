@@ -24,7 +24,7 @@ JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine
 
     }
 
-    detect(frame, faceX1, faceY1, faceX2, faceY2);
+    detectNonfrontalFace(frame, faceX1, faceY1, faceX2, faceY2);
 
     //Returns image matrix original size
     transpose(frame, frame);
@@ -40,7 +40,7 @@ JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine
 
 }
 
-void detect(Mat& frame, int& x1, int& y1, int& x2, int& y2){
+void detectNonfrontalFace(Mat& frame, int& x1, int& y1, int& x2, int& y2){
 
     transpose(frame, frame);
     flip(frame, frame, 1);
@@ -74,11 +74,6 @@ void detect(Mat& frame, int& x1, int& y1, int& x2, int& y2){
         if( (x1 > currentX1 - 40 && x1 < currentX1 + 40 && y1 > currentY1 - 40 && y1 < currentY1 + 40) ||
                 (checkExistance == false && i == faces.size() - 1)){
 
-//            rectangle( frame,
-//                       Point(faces[i].x, faces[i].y),
-//                       Point(faces[i].x + faces[i].width, faces[i].y + faces[i].height),
-//                       Scalar(255, 0, 0), 2, 8, 0);
-
             elect = faces[i];
 
             x1 = elect.x;               y1 = elect.y;
@@ -94,4 +89,17 @@ void detect(Mat& frame, int& x1, int& y1, int& x2, int& y2){
     if(checkExistance == false)
         x1 = y1 = x2 = y2 = 0;
 
+}
+
+JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine_detectNeckPoints
+        (JNIEnv* env, jclass jcls, jlong addr){
+
+    Mat& frame = *(Mat*) addr;
+
+
+
+    jintArray facePoint = env->NewIntArray(4);
+    jint points[4] = {0, 0, 0, 0};
+    env->SetIntArrayRegion(facePoint, 0, 4, points);
+    return facePoint;
 }

@@ -228,7 +228,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         faceX1 = y1; faceY1 = imgFrame.rows() - x1;
         faceX2 = y2; faceY2 = imgFrame.rows() - x2;
 
-
         if(resultFrame == null)
             return;
 
@@ -248,7 +247,7 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
                         faceCenterY > standardCenterY - 20 && faceCenterY < standardCenterY + 20) {
                     roiCandidates.add(new Rect(x1, y1, x2, y2));
                     Log.d("OpenCV", roiCandidates.size() + "");
-                    if(roiCandidates.size() == 3) {
+                    if(roiCandidates.size() == 4){
                         makeDiagnosis();
                     }
                 }else{
@@ -284,7 +283,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
             neckStartPointX += roi.right;
             neckStartPointY += roi.bottom;
         }
-
 
         faceStartPointX /= dividePoint;
         faceStartPointY /= dividePoint;
