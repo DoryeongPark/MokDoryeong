@@ -85,17 +85,200 @@ void detectNonfrontalFace(Mat& frame, int& x1, int& y1, int& x2, int& y2){
 
     }
 
-
     if(checkExistance == false)
         x1 = y1 = x2 = y2 = 0;
 
 }
 
 JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine_detectNeckPoints
-        (JNIEnv* env, jclass jcls, jlong addr){
+        (JNIEnv* env, jclass jcls, jlong addr, jint faceStartPointX, jint faceStartPointY, jint neckStartPointX, jint neckStartPointY){
 
     Mat& frame = *(Mat*) addr;
 
+    int imgCols = frame.cols;
+    int imgRows = frame.rows;
+
+    cvtColor(frame, frame, CV_RGBA2BGR);
+    cvtColor(frame, frame, CV_BGR2YCrCb);
+    inRange(frame, Scalar(0, 133, 77), Scalar(255, 173, 127), frame);
+
+    auto structuringElement = getStructuringElement(MORPH_RECT, Size(3, 11), Point(1, 5));
+    morphologyEx( frame, frame, MORPH_CLOSE, structuringElement );
+
+    int roiHeight = (int)(neckStartPointY - faceStartPointY) * 1.1;
+
+    if(neckStartPointY + roiHeight > imgRows)
+        roiHeight = imgRows - neckStartPointY;
+
+    Mat neckROI = frame(Rect(neckStartPointX, neckStartPointY, imgCols - neckStartPointX, roiHeight));
+
+    vector<vector<Point>> contours;
+    findContours(neckROI, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+    vector<Point> neckPoints;
+    auto maxSize = 0;
+
+    for(auto iter = contours.begin(); iter != contours.end(); ++iter) {
+        if(iter->size() > maxSize) {
+            maxSize = iter->size();
+            neckPoints = *iter;
+        }
+    }
+
+    auto upper = 10000;
+    auto lower = 0;
+    vector<Point> rightPoints;
+
+    //Get upper point
+    for(Point p : neckPoints)
+        if(p.y < upper)
+            upper = p.y;
+
+    //Get lower point on right side
+    for(Point p1 : neckPoints)
+        for(Point p2 : neckPoints)
+            if(p1.y == p2.y && p1.x < p2.x)
+                rightPoints.emplace_back(p2);
+
+    for(Point p : rightPoints)
+        if(p.y > lower)
+            lower = p.y;
+
+    int interval = (lower - upper) / 7;
+    int standard[8];
+
+    vector<vector<Point>> bucket{};
+
+    for(int i = 0; i < 8; ++i){
+        vector<cv::Point> init;
+        bucket.emplace_back(init);
+    }
+
+    for(int i = 0; i < 8; ++i) {
+        standard[i] = upper + interval * i;
+        __android_log_print(ANDROID_LOG_DEBUG, "OpenCV", "%d", standard[i]);
+    }
+
+    for(Point p : neckPoints){
+        for(int i = 0; i < 8; ++i)
+            if(standard[i] == p.y) {
+                bucket[i].emplace_back(p);
+            }
+    }
+
+    int maxX = 0;
+    int minX = 5000;
+
+    Point maxPoint{0, 0};
+    Point minPoint{0, 0};
+
+    for(int i = 0; i < 8; ++i) {
+        if(bucket[i].size() > 2) {
+            for (Point p : bucket[i])
+                if(p.x > maxX){
+                    maxX = p.x;
+                    maxPoint = p;
+                }
+
+            for(Point p : bucket[i])
+                if(p.x < minX){
+                    minX = p.x;
+                    minPoint = p;
+                }
+
+            __android_log_print(ANDROID_LOG_DEBUG, "OpenCV", "%d | %d", minX, maxX);
+            bucket[i].clear();
+            bucket[i].emplace_back(maxPoint);
+            bucket[i].emplace_back(minPoint);
+            maxX = 0; minX = 5000;
+        }
+    }
+
+    //Print points
+    for(int i = 0; i < 8; ++i)
+        for(Point p : bucket[i])
+            circle(frame, Point(neckStartPointX + p.x, neckStartPointY + p.y), 5, Scalar(255, 0, 0), CV_FILLED);
+
+
+
+
+
+
+
+//
+//    for(auto iter = contoursFiltered.begin(); iter != contoursFiltered.end(); ++iter){
+//        for (Point p : *iter) {
+//            circle(frame, Point(neckStartPointX + p.x, neckStartPointY + p.y),
+//                   5,
+//                   Scalar(255, 0, 0), CV_FILLED);
+//        }
+//
+//    }
+
+
+
+
+
+
+
+//            circle(frame, Point(neckStartPointX + iter->at(0).x, neckStartPointY + iter->at(0).y),
+//                   5,
+//                   Scalar(255, 0, 0), CV_FILLED);
+//            circle(frame, Point(neckStartPointX + iter->at(1).x, neckStartPointY + iter->at(1).y),
+//                   5,
+//                   Scalar(255, 0, 0), CV_FILLED);
+//            circle(frame, Point(neckStartPointX + iter->at(2).x, neckStartPointY + iter->at(2).y),
+//                   5,
+//                   Scalar(255, 0, 0), CV_FILLED);
+
+
+//    int** labels = new int*[imgRows];
+//    bool** isLabeled = new bool*[imgRows];
+//
+//    for(int i = 0; i < imgRows; ++i) {
+//        isLabeled[i] = new bool[imgCols];
+//        labels[i] = new int[imgCols];
+//    }
+//
+//    stack<Point> components;
+//    int labelNumber = 0;
+
+//    for(int i = 0; i < imgRows; ++i){
+//        for(int j = 0; j < imgCols; ++j){
+//            if(frame.at<uchar>(i, j) == 255 && isLabeled[i][j] == false) {
+//
+//                bool checkExistenceFirst = checkEightNeighbors(components, i, j, frame, imgRows, imgCols, isLabeled);
+//
+//                if(checkExistenceFirst == false)
+//                    continue;
+//
+//                while(true) {
+//                    Point nextPoint = components.top();
+//                    bool checkExistence = checkEightNeighbors(components, nextPoint.y, nextPoint.x, frame, imgRows, imgCols, isLabeled);
+//
+//                    if (checkExistence == false) {
+//
+//                        for(int a = 0; a < components.size(); ++a){
+//                            Point p = components.top();
+//                            labels[p.y][p.x] = labelNumber;
+//
+//                            components.pop();
+//                        }
+//                        ++labelNumber;
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+//    for(int i = 0; i < imgRows; ++i) {
+//        for (int j = 0; j < imgCols; ++j){
+//            if(labels[i][j] % 2 == 0){
+//                frame.at<uchar>(i, j) = 100;
+//            }
+//        }
+//    }
 
 
     jintArray facePoint = env->NewIntArray(4);
@@ -103,3 +286,5 @@ JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine
     env->SetIntArrayRegion(facePoint, 0, 4, points);
     return facePoint;
 }
+
+

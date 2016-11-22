@@ -16,3 +16,8 @@ LOCAL_PATH := $(call my-dir)
 
 
 	include $(BUILD_SHARED_LIBRARY)
+
+	LOCAL_CPPFLAGS += -std=c++11
+
+    NDK_TOOLCHAIN_VERSION := clang
+

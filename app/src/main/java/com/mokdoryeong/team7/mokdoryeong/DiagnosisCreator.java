@@ -209,8 +209,13 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         imgFrame = inputFrame.rgba();
 
         if(faceDetectionArea.contains(faceX1, faceY1, faceX2, faceY2))
-            Core.rectangle(imgFrame, new Point(faceX1, faceY1),
-                    new Point(faceX2, faceY2), new Scalar(0, 255, 255), 4);
+            Core.circle(imgFrame, new Point((faceX1 + faceX2) / 2, faceY2), 10, new Scalar(0, 255, 0), -1);
+//            Core.rectangle(imgFrame, new Point(faceX1, faceY1),
+//                    new Point(faceX2, faceY2), new Scalar(0, 255, 255), 4);
+
+
+
+
 
         return imgFrame;
     }
@@ -280,7 +285,7 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         for(Rect roi : roiCandidates){
             faceStartPointX += roi.right;
             faceStartPointY += (roi.top + roi.bottom) / 2;
-            neckStartPointX += roi.right;
+            neckStartPointX += roi.left + ((roi.right - roi.left ) / 2);
             neckStartPointY += roi.bottom;
         }
 
@@ -300,11 +305,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         startActivity(intent);
     }
 
-    private Bitmap rotateImage(Bitmap src, float degree){
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        return Bitmap.createBitmap(src, 0, 0, src.getWidth(),
-                src.getHeight(), matrix, true);
-    }
+
 
 }

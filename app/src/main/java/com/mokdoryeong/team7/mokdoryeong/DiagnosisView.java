@@ -44,11 +44,7 @@ public class DiagnosisView extends Activity {
         Core.circle(image, new Point(neckStartPoint[0], neckStartPoint[1]), 5, new Scalar(0, 255, 0));
 
         //Analysis Routine
-        Imgproc.Canny(image, image, 80, 80);
-        Mat structuringElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 9), new Point(3, 5));
-        Imgproc.morphologyEx(image, image, Imgproc.MORPH_DILATE, structuringElement);
-
-        OpencvRoutine.detectNeckPoints(image.getNativeObjAddr());
+        OpencvRoutine.detectNeckPoints(image.getNativeObjAddr(), faceStartPoint[0], faceStartPoint[1], neckStartPoint[0], neckStartPoint[1]);
 
         diagnosisView = (ImageView)findViewById(R.id.diagnosis_view);
         Bitmap resultImage = Bitmap.createBitmap(image.cols(), image.rows(),Bitmap.Config.ARGB_8888);
@@ -57,23 +53,18 @@ public class DiagnosisView extends Activity {
 
     }
 
-    private Mat getLabels(Mat inputArray){
-
-        Mat outputArray = new Mat(inputArray.rows(), inputArray.cols(), CvType.CV_8UC1, new Scalar(0));
-        Stack<Point> components = new Stack<Point>();
-
-        for(int i = 0; i < inputArray.cols(); ++i){
-            for(int j = 0; j < inputArray.rows(); ++j){
-                if(inputArray.get(j, i)[0] == 255.0){
-                    double[] data = new double[3];
-                    data[0] = 125.0;
-                    inputArray.put(j, i, data);
-                }
-
-            }
-        }
-
-        return outputArray;
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        image.release();
     }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        image.release();
+        finish();
+    }
+
 
 }
