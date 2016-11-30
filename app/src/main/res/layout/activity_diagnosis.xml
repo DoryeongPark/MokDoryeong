@@ -26,7 +26,7 @@
         android:orientation="horizontal"
         android:id="@+id/progress_view_platform"
         android:gravity="center_vertical|center_horizontal"
-        android:background="#555555">
+        android:background="@color/colorPrimary">
     </LinearLayout>
 
 
@@ -36,7 +36,7 @@
         android:orientation="vertical"
         android:id="@+id/guide_view_platform"
         android:gravity="center_vertical|center_horizontal"
-        android:background="#555555">
+        android:background="@color/colorPrimary">
 
     </LinearLayout>
 

@@ -6,9 +6,7 @@ import android.util.Log;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
-/**
- * Created by park on 2016-10-12.
- */
+
 public class CervicalDataCreator {
 
     private long counter = 0L;
@@ -39,6 +37,9 @@ public class CervicalDataCreator {
                 dataHeartBeat.continueHeartBeat();
             }
 
+            if(0.0f < pitchAngle && pitchAngle < 15.0f)
+                return;
+
             dataFilter = 0;
             ++counter;
 
@@ -56,14 +57,15 @@ public class CervicalDataCreator {
 
     public void onHeartBeatFinished(DateTime startTime, DateTime finishTime){
         Log.d("DataHeartBeat", "DataHeartBeat finished");
-        if(finishTime.minus(startTime.getMillis()).getMillis() < 20000) {
+        if(finishTime.minus(startTime.getMillis()).getMillis() < 20000
+                || averageAngle < 15.0f) {
             resetMembers();
             return;
         }
+
         cervicalDataManager.insert(new CervicalData(startTime,
                                             finishTime,
-                                            averageAngle,
-                                            cervicalRiskIndex));
+                                            averageAngle));
         resetMembers();
     }
 

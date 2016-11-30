@@ -7,9 +7,7 @@ import android.hardware.SensorManager;
 import android.view.Surface;
 import android.view.WindowManager;
 
-/**
- * Created by park on 2016-10-09.
- */
+
 public class PitchCalculator implements SensorEventListener {
 
     private WindowManager wm;

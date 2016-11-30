@@ -105,7 +105,7 @@ JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine
     auto structuringElement = getStructuringElement(MORPH_RECT, Size(3, 11), Point(1, 5));
     morphologyEx( frame, frame, MORPH_CLOSE, structuringElement );
 
-    int roiHeight = (int)(neckStartPointY - faceStartPointY) * 1.1;
+    int roiHeight = (int)(neckStartPointY - faceStartPointY);
 
     if(neckStartPointY + roiHeight > imgRows)
         roiHeight = imgRows - neckStartPointY;
@@ -179,13 +179,11 @@ JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine
                     maxX = p.x;
                     maxPoint = p;
                 }
-
             for(Point p : bucket[i])
                 if(p.x < minX){
                     minX = p.x;
                     minPoint = p;
                 }
-
             __android_log_print(ANDROID_LOG_DEBUG, "OpenCV", "%d | %d", minX, maxX);
             bucket[i].clear();
             bucket[i].emplace_back(maxPoint);
@@ -196,95 +194,26 @@ JNIEXPORT jintArray JNICALL Java_com_mokdoryeong_team7_mokdoryeong_OpencvRoutine
 
     //Print points
     for(int i = 0; i < 8; ++i)
-        for(Point p : bucket[i])
-            circle(frame, Point(neckStartPointX + p.x, neckStartPointY + p.y), 5, Scalar(255, 0, 0), CV_FILLED);
+        circle(frame, Point(neckStartPointX + (bucket[i][0].x + bucket[i][1].x) / 2, neckStartPointY + bucket[i][0].y), 5, Scalar(255, 0, 0),
+                   CV_FILLED);
 
 
+    jintArray intArray = env->NewIntArray(16);
+    jint *ptrArray = env->GetIntArrayElements(intArray, nullptr);
 
+    for(int i = 0; i < 8; ++i)
+        for(int j = 0; j < 2; ++j) {
+            if(j == 0)
+                ptrArray[i * 2 + j] = bucket[i][j].x;
+            else {
+                ptrArray[i * 2 + j] = neckStartPointY + bucket[i][j].y;
+                ptrArray[i * 2 + j - 1] = neckStartPointX + (ptrArray[i * 2 + j - 1] + bucket[i][j].x) / 2;
+            }
+        }
 
+    env->ReleaseIntArrayElements(intArray, ptrArray, 0);
+    return intArray;
 
-
-
-//
-//    for(auto iter = contoursFiltered.begin(); iter != contoursFiltered.end(); ++iter){
-//        for (Point p : *iter) {
-//            circle(frame, Point(neckStartPointX + p.x, neckStartPointY + p.y),
-//                   5,
-//                   Scalar(255, 0, 0), CV_FILLED);
-//        }
-//
-//    }
-
-
-
-
-
-
-
-//            circle(frame, Point(neckStartPointX + iter->at(0).x, neckStartPointY + iter->at(0).y),
-//                   5,
-//                   Scalar(255, 0, 0), CV_FILLED);
-//            circle(frame, Point(neckStartPointX + iter->at(1).x, neckStartPointY + iter->at(1).y),
-//                   5,
-//                   Scalar(255, 0, 0), CV_FILLED);
-//            circle(frame, Point(neckStartPointX + iter->at(2).x, neckStartPointY + iter->at(2).y),
-//                   5,
-//                   Scalar(255, 0, 0), CV_FILLED);
-
-
-//    int** labels = new int*[imgRows];
-//    bool** isLabeled = new bool*[imgRows];
-//
-//    for(int i = 0; i < imgRows; ++i) {
-//        isLabeled[i] = new bool[imgCols];
-//        labels[i] = new int[imgCols];
-//    }
-//
-//    stack<Point> components;
-//    int labelNumber = 0;
-
-//    for(int i = 0; i < imgRows; ++i){
-//        for(int j = 0; j < imgCols; ++j){
-//            if(frame.at<uchar>(i, j) == 255 && isLabeled[i][j] == false) {
-//
-//                bool checkExistenceFirst = checkEightNeighbors(components, i, j, frame, imgRows, imgCols, isLabeled);
-//
-//                if(checkExistenceFirst == false)
-//                    continue;
-//
-//                while(true) {
-//                    Point nextPoint = components.top();
-//                    bool checkExistence = checkEightNeighbors(components, nextPoint.y, nextPoint.x, frame, imgRows, imgCols, isLabeled);
-//
-//                    if (checkExistence == false) {
-//
-//                        for(int a = 0; a < components.size(); ++a){
-//                            Point p = components.top();
-//                            labels[p.y][p.x] = labelNumber;
-//
-//                            components.pop();
-//                        }
-//                        ++labelNumber;
-//                        break;
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-//    for(int i = 0; i < imgRows; ++i) {
-//        for (int j = 0; j < imgCols; ++j){
-//            if(labels[i][j] % 2 == 0){
-//                frame.at<uchar>(i, j) = 100;
-//            }
-//        }
-//    }
-
-
-    jintArray facePoint = env->NewIntArray(4);
-    jint points[4] = {0, 0, 0, 0};
-    env->SetIntArrayRegion(facePoint, 0, 4, points);
-    return facePoint;
 }
 
 

@@ -11,6 +11,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.os.Handler;
@@ -32,9 +33,7 @@ import org.opencv.core.Scalar;
 
 import java.util.ArrayList;
 
-/**
- * Created by park on 2016-10-31.
- */
+
 public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.CvCameraViewListener2{
 
     private ArrayList<Rect> roiCandidates;
@@ -88,7 +87,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         margin.setMargins((int)((float)(dm.widthPixels - targetViewWidth) / 2f),
                           (int)((float)(dm.heightPixels - targetViewWidth) / 2f), 0, 0);
         targetView.setLayoutParams(margin);
-
     }
 
     private void loadGuideView(){
@@ -100,7 +98,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         int guideViewHeight= (int)((float)dm.heightPixels);
         guideViewPlatform = (LinearLayout)findViewById(R.id.guide_view_platform);
         guideViewPlatform.setLayoutParams(new FrameLayout.LayoutParams(guideViewWidth, guideViewHeight));
-
     }
 
     private void loadProgressView(){
@@ -116,12 +113,13 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         margin.setMargins((int)((float)(dm.widthPixels - progressViewWidth)), 0, 0, 0);
         progressViewPlatform.setLayoutParams(margin);
 
-
     }
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_diagnosis);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         faceX1 = faceY1 = faceX2 = faceY2 = 0;
 
@@ -210,12 +208,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
         if(faceDetectionArea.contains(faceX1, faceY1, faceX2, faceY2))
             Core.circle(imgFrame, new Point((faceX1 + faceX2) / 2, faceY2), 10, new Scalar(0, 255, 0), -1);
-//            Core.rectangle(imgFrame, new Point(faceX1, faceY1),
-//                    new Point(faceX2, faceY2), new Scalar(0, 255, 255), 4);
-
-
-
-
 
         return imgFrame;
     }
@@ -252,7 +244,7 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
                         faceCenterY > standardCenterY - 20 && faceCenterY < standardCenterY + 20) {
                     roiCandidates.add(new Rect(x1, y1, x2, y2));
                     Log.d("OpenCV", roiCandidates.size() + "");
-                    if(roiCandidates.size() == 4){
+                    if(roiCandidates.size() == 3){
                         makeDiagnosis();
                     }
                 }else{
@@ -279,8 +271,6 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
         int dividePoint = roiCandidates.size();
 
         DisplayMetrics dm = getApplicationContext().getResources().getDisplayMetrics();
-        int dmWidth = dm.widthPixels;
-        int dmHeight = dm.heightPixels;
 
         for(Rect roi : roiCandidates){
             faceStartPointX += roi.right;
@@ -304,7 +294,5 @@ public class DiagnosisCreator extends Activity implements CameraBridgeViewBase.C
 
         startActivity(intent);
     }
-
-
 
 }

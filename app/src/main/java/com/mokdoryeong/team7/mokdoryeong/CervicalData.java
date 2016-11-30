@@ -4,9 +4,6 @@ import org.joda.time.DateTime;
 
 import java.io.Serializable;
 
-/**
- * Created by park on 2016-10-11.
- */
 public class CervicalData implements Serializable {
 
     private DateTime startTime;
@@ -14,11 +11,11 @@ public class CervicalData implements Serializable {
     private float averageAngle;
     private float cervicalRiskIndex;
 
-    public CervicalData(DateTime startTime, DateTime finishTime, float averageAngle, float cervicalRiskIndex){
+    public CervicalData(DateTime startTime, DateTime finishTime, float averageAngle){
         this.startTime = startTime;
         this.finishTime = finishTime;
         this.averageAngle = averageAngle;
-        this.cervicalRiskIndex = cervicalRiskIndex;
+        this.cervicalRiskIndex = (int)(averageAngle/20)+1;
     }
 
     public DateTime getStartTime() {
@@ -58,6 +55,30 @@ public class CervicalData implements Serializable {
             return false;
         else
             return true;
+    }
+
+    public String getTitle()
+    {
+        return
+                startTime.getYear() + "년 " +
+                        startTime.getMonthOfYear() + "월 " +
+                        startTime.getDayOfMonth() + "일 " +
+                        startTime.getHourOfDay() + "시 " +
+                        startTime.getMinuteOfHour() + "분 " +
+                        startTime.getSecondOfMinute() + "초";
+
+    }
+    public String getSpecificString()
+    {
+        int sec = startTime.getSecondOfDay()- finishTime.getSecondOfDay();
+        int min = sec/60;
+        sec = sec%60;
+        int hour = min/60;
+        min = min % 60;
+        String str = "기간 : "+hour+"시-"+min+"분-"+sec+"초\n";
+        str+="평균목각도 : "+averageAngle+"\n";
+        str+="목부담레벨 : "+cervicalRiskIndex+"\n";
+        return str;
     }
 
 }

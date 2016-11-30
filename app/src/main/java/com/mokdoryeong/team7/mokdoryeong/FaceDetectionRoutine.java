@@ -1,12 +1,11 @@
 package com.mokdoryeong.team7.mokdoryeong;
 
+import android.os.Process;
 import android.util.Log;
 
 import org.opencv.core.Mat;
 
-/**
- * Created by park on 2016-11-10.
- */
+
 
 public class FaceDetectionRoutine extends Thread {
 
@@ -25,6 +24,7 @@ public class FaceDetectionRoutine extends Thread {
 
     public void run() {
         isAlive = true;
+        Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
         while (true) {
 
             if (isAlive == false)
